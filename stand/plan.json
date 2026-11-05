@@ -1,0 +1,6 @@
+{
+  "_doc": "What the hourly workflows run. Change stage/n to move from calibration to the main series; results go to branch runs-<lane>/<stage>/. Budgets are requests per hour per lane; keep their sum <= 180 (Kilo free: 200/h).",
+  "model": "nvidia/nemotron-3.5-super-vl:free",
+  "sb":   {"enabled": true, "stage": "calib", "n": 20, "arms": "base,harness", "budget": 80},
+  "tau2": {"enabled": true, "stage": "calib", "domain": "telecom", "n": 5, "arms": "base,harness", "budget": 100}
+}

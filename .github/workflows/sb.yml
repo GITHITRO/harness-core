@@ -1,0 +1,76 @@
+name: lane-sb
+# SpreadsheetBench Verified-400, paired base/harness. Hourly; each run continues where the last one stopped.
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch: {}
+concurrency:
+  group: lane-sb
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+        with: {path: code, persist-credentials: false}
+      - name: Read plan
+        id: plan
+        run: |
+          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+          import json; p = json.load(open("code/stand/plan.json")); s = p["sb"]
+          print(f"enabled={str(s['enabled']).lower()}"); print(f"stage={s['stage']}"); print(f"n={s['n']}")
+          print(f"arms={s['arms']}"); print(f"budget={s['budget']}"); print(f"model={p['model']}")
+          EOF
+      - name: State branch
+        if: steps.plan.outputs.enabled == 'true'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+          git -c http.extraheader="$AUTH" clone -q --depth 1 --branch runs-sb "https://github.com/${GITHUB_REPOSITORY}.git" state 2>/dev/null || \
+            (mkdir state && cd state && git init -q -b runs-sb)
+          mkdir -p "state/${{ steps.plan.outputs.stage }}"
+      - uses: actions/setup-python@v5
+        if: steps.plan.outputs.enabled == 'true'
+        with: {python-version: "3.12"}
+      - name: Install (LibreOffice, SpreadsheetBench @49b73a9, Verified-400)
+        if: steps.plan.outputs.enabled == 'true'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq libreoffice-calc-nogui > /dev/null
+          pip install -q openpyxl numpy tqdm
+          git init -q sbrepo && cd sbrepo
+          git fetch -q --depth 1 https://github.com/RUCKBReasoning/SpreadsheetBench.git 49b73a94775fb489063f60ca1865e3a650079a79
+          git checkout -q FETCH_HEAD
+          mkdir -p ../sbdata && tar -xzf data/spreadsheetbench_verified_400.tar.gz -C ../sbdata
+      - name: Run
+        if: steps.plan.outputs.enabled == 'true'
+        env:
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+        run: |
+          STAGE="${{ steps.plan.outputs.stage }}"; RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"
+          OUT="$GITHUB_WORKSPACE/state/$STAGE"; LOGS="$OUT/logs/$RUN_ID"; mkdir -p "$LOGS"
+          KEYF="$RUNNER_TEMP/k"; printf '%s' "$KILO_API_KEY" > "$KEYF"; chmod 600 "$KEYF"; unset KILO_API_KEY
+          UPSTREAM_KEY_FILE="$KEYF" BUDGET="${{ steps.plan.outputs.budget }}" STATE_FILE="$OUT/pacer_state.json" \
+            LOG_DIR="$LOGS" LANE=kilo-sb nohup python3 -I code/stand/pacer.py > "$LOGS/pacer.out" 2>&1 &
+          sleep 3; rm -f "$KEYF"; curl -sf 127.0.0.1:8787/stats > /dev/null
+          export SB_DATA="$GITHUB_WORKSPACE/sbdata/spreadsheetbench_verified_400" SB_REPO="$GITHUB_WORKSPACE/sbrepo"
+          export MODEL="${{ steps.plan.outputs.model }}"
+          DEADLINE=$(( $(date +%s) + 50*60 ))
+          ( cd "$RUNNER_TEMP" && python3 -I "$GITHUB_WORKSPACE/code/stand/sb/run.py" --arms "${{ steps.plan.outputs.arms }}" \
+              --n "${{ steps.plan.outputs.n }}" --out "$OUT" --deadline "$DEADLINE" ) 2>&1 | tee "$LOGS/run.out" || true
+          curl -s 127.0.0.1:8787/stats > "$LOGS/pacer_stats.json" || true
+          pkill -f stand/pacer.py || true; sleep 1
+          gzip -9 "$LOGS"/*.jsonl 2>/dev/null || true
+      - name: Commit state
+        if: always() && steps.plan.outputs.enabled == 'true'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd state
+          git config user.name "harness-stand"; git config user.email "harness-stand@users.noreply.github.com"
+          git add -A && git commit -qm "sb: run ${GITHUB_RUN_ID}" || exit 0
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+          git -c http.extraheader="$AUTH" push -q "https://github.com/${GITHUB_REPOSITORY}.git" HEAD:runs-sb

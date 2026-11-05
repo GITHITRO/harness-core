@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.secrets/
+*.key
+pacer_state.json
+logs/
