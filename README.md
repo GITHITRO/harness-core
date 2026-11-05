@@ -27,7 +27,7 @@ Model: `nvidia/nemotron-3.5-super-vl:free` via Kilo Gateway, for the agent and f
 ### Setup
 
 1. Settings → Secrets and variables → Actions → New repository secret: `KILO_API_KEY`.
-2. Actions → enable workflows. Runs start on the cron (`:07` sb, `:37` tau2) or via *Run workflow*.
+2. Actions → enable workflows. Runs start on the cron (`:07` sb, `:37` tau2), via *Run workflow*, or on a push to `main` that changes `stand/plan.json` (or the lane's workflow file).
 
 ### Security
 

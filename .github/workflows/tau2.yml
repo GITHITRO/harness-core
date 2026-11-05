@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "37 * * * *"
   workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: [stand/plan.json, .github/workflows/tau2.yml]
 concurrency:
   group: lane-tau2
   cancel-in-progress: false
