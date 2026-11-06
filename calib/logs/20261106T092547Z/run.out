@@ -1,0 +1,30 @@
+   45300 harness  correct=False calls=2 18.6s 
+Cell values in the specified range are identical.
+    6698 harness  correct=True calls=2 123.3s 
+   130-9 harness  correct=False calls=3 78.7s 
+Cell values in the specified range are identical.
+   54638 harness  correct=True calls=3 336.7s 
+Cell values in the specified range are identical.
+   41265 harness  correct=True calls=2 101.6s 
+  399-14 harness  correct=False calls=2 90.8s 
+Cell values in the specified range are identical.
+   54274 harness  correct=True calls=2 37.8s 
+    9391 harness  correct=False calls=3 257.6s 
+  560-12 harness  correct=False calls=2 41.6s 
+Cell values in the specified range are identical.
+   35739 harness  correct=True calls=2 34.9s 
+Cell values in the specified range are identical.
+   47933 harness  correct=True calls=2 13.0s 
+   493-5 harness  correct=False calls=2 71.7s 
+Cell values in the specified range are identical.
+   41601 harness  correct=True calls=2 23.2s 
+Cell values in the specified range are identical.
+   43589 harness  correct=True calls=2 10.2s 
+Cell values in the specified range are identical.
+  440-24 harness  correct=True calls=2 26.6s 
+Cell values in the specified range are identical.
+   58701 harness  correct=True calls=2 88.4s 
+   37462 harness  correct=False calls=2 74.3s 
+Cell values in the specified range are identical.
+   52541 harness  correct=True calls=2 26.1s 
+  269-44 harness  correct=False calls=5 268.4s 
