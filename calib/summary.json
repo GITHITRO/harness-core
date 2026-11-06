@@ -1,0 +1,19 @@
+{
+ "base": {
+  "n": 1,
+  "pass": 1,
+  "pass_rate": 1.0,
+  "mean_messages": 103.0
+ },
+ "harness": {
+  "n": 1,
+  "pass": 1,
+  "pass_rate": 1.0,
+  "mean_messages": 86.0
+ },
+ "paired": {
+  "n": 1,
+  "harness_only": 0,
+  "base_only": 0
+ }
+}

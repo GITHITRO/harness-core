@@ -1,0 +1,39 @@
+[32m2026-11-05 23:54:31.256[0m | [33m[1mWARNING [0m | [36mtau2.utils.utils[0m:[36m<module>[0m:[36m15[0m - [33m[1mNo .env file found[0m
+[32m2026-11-05 23:54:31.256[0m | [1mINFO    [0m | [36mtau2.utils.utils[0m:[36m<module>[0m:[36m23[0m - [1mUsing data directory from environment: /home/runner/work/harness-core/harness-core/tau2/data[0m
+[32m2026-11-05 23:54:34.863[0m | [1mINFO    [0m | [36mtau2.utils.llm_utils[0m:[36m<module>[0m:[36m102[0m - [1mLiteLLM: Cache is disabled[0m
+[32m2026-11-05 23:54:34.950[0m | [34m[1mDEBUG   [0m | [36mtau2.registry[0m:[36m<module>[0m:[36m281[0m - [34m[1mRegistering default components...[0m
+[32m2026-11-05 23:54:34.974[0m | [34m[1mDEBUG   [0m | [36mtau2.registry[0m:[36m<module>[0m:[36m292[0m - [34m[1mVoice dependencies not installed, skipping voice user registration[0m
+[32m2026-11-05 23:54:34.974[0m | [34m[1mDEBUG   [0m | [36mtau2.registry[0m:[36m<module>[0m:[36m350[0m - [34m[1mDefault components registered successfully. Registry info: {
+  "domains": [
+    "mock",
+    "airline",
+    "retail",
+    "telecom",
+    "telecom-workflow",
+    "banking_knowledge"
+  ],
+  "agents": [
+    "llm_agent",
+    "llm_agent_gt",
+    "llm_agent_solo",
+    "discrete_time_audio_native_agent"
+  ],
+  "users": [
+    "user_simulator",
+    "dummy_user"
+  ],
+  "task_sets": [
+    "mock",
+    "airline",
+    "retail",
+    "telecom_full",
+    "telecom_small",
+    "telecom",
+    "telecom-workflow",
+    "banking_knowledge"
+  ]
+}[0m
+000 base     reward=1.0 msgs=103 130.2s 
+000 harness  reward=1.0 msgs=86 3685.1s 
+deadline reached, stopping
+{"base": {"n": 1, "pass": 1, "pass_rate": 1.0, "mean_messages": 103.0}, "harness": {"n": 1, "pass": 1, "pass_rate": 1.0, "mean_messages": 86.0}, "paired": {"n": 1, "harness_only": 0, "base_only": 0}}

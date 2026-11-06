@@ -1,0 +1,106 @@
+pacer lane=kilo-tau2 budget=100/h window_loaded=0 port=8787
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 32968)
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 766, in __init__
+    self.handle()
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/http/server.py", line 440, in handle
+    self.handle_one_request()
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/http/server.py", line 428, in handle_one_request
+    method()
+  File "/home/runner/work/harness-core/harness-core/code/stand/pacer.py", line 160, in do_POST
+    self._send(status, data)
+  File "/home/runner/work/harness-core/harness-core/code/stand/pacer.py", line 144, in _send
+    self.wfile.write(data)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 845, in write
+    self._sock.sendall(b)
+BrokenPipeError: [Errno 32] Broken pipe
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 53600)
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 766, in __init__
+    self.handle()
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/http/server.py", line 440, in handle
+    self.handle_one_request()
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/http/server.py", line 428, in handle_one_request
+    method()
+  File "/home/runner/work/harness-core/harness-core/code/stand/pacer.py", line 160, in do_POST
+    self._send(status, data)
+  File "/home/runner/work/harness-core/harness-core/code/stand/pacer.py", line 144, in _send
+    self.wfile.write(data)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 845, in write
+    self._sock.sendall(b)
+BrokenPipeError: [Errno 32] Broken pipe
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 37046)
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 766, in __init__
+    self.handle()
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/http/server.py", line 440, in handle
+    self.handle_one_request()
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/http/server.py", line 428, in handle_one_request
+    method()
+  File "/home/runner/work/harness-core/harness-core/code/stand/pacer.py", line 160, in do_POST
+    self._send(status, data)
+  File "/home/runner/work/harness-core/harness-core/code/stand/pacer.py", line 144, in _send
+    self.wfile.write(data)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 845, in write
+    self._sock.sendall(b)
+BrokenPipeError: [Errno 32] Broken pipe
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 40046)
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 766, in __init__
+    self.handle()
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/http/server.py", line 440, in handle
+    self.handle_one_request()
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/http/server.py", line 428, in handle_one_request
+    method()
+  File "/home/runner/work/harness-core/harness-core/code/stand/pacer.py", line 160, in do_POST
+    self._send(status, data)
+  File "/home/runner/work/harness-core/harness-core/code/stand/pacer.py", line 144, in _send
+    self.wfile.write(data)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 845, in write
+    self._sock.sendall(b)
+BrokenPipeError: [Errno 32] Broken pipe
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 56650)
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 766, in __init__
+    self.handle()
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/http/server.py", line 440, in handle
+    self.handle_one_request()
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/http/server.py", line 428, in handle_one_request
+    method()
+  File "/home/runner/work/harness-core/harness-core/code/stand/pacer.py", line 160, in do_POST
+    self._send(status, data)
+  File "/home/runner/work/harness-core/harness-core/code/stand/pacer.py", line 144, in _send
+    self.wfile.write(data)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/socketserver.py", line 845, in write
+    self._sock.sendall(b)
+BrokenPipeError: [Errno 32] Broken pipe
+----------------------------------------
