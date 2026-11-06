@@ -6,11 +6,11 @@
   "stage": "lhaw",
   "n": 100,
   "arms": "u_noask,u_ask,u_nv_ask",
-  "budget": 80,
+  "budget": 170,
   "script": "lhaw"
  },
  "tau2": {
-  "enabled": true,
+  "enabled": false,
   "stage": "calib",
   "domain": "telecom",
   "n": 20,
