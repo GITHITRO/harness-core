@@ -7,13 +7,13 @@
   "mean_messages": 94.0
  },
  "harness": {
-  "n": 1,
-  "pass": 1,
+  "n": 2,
+  "pass": 2,
   "pass_rate": 1.0,
-  "mean_messages": 94.0
+  "mean_messages": 93.0
  },
  "paired": {
-  "n": 1,
+  "n": 2,
   "harness_only": 0,
   "base_only": 0
  }
