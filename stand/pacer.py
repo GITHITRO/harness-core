@@ -32,6 +32,8 @@ LOG_DIR = os.environ.get("LOG_DIR", "logs")
 PORT = int(os.environ.get("PORT", "8787"))
 LANE = os.environ.get("LANE", "kilo")
 MAX_RETRY = int(os.environ.get("MAX_RETRY", "6"))
+# measured on 529 calls: median 2.3 s, p99 126 s, max 190 s -> 300 s bounds a hung request with margin
+UPSTREAM_TIMEOUT = float(os.environ.get("UPSTREAM_TIMEOUT", "300"))
 WINDOW = 3600.0
 PATH_RE = re.compile(r"^/b/([\w.-]+)/a/([\w.-]+)/v1(/.*)$")
 
@@ -93,7 +95,7 @@ def forward(bench, arm, subpath, body_bytes):
             try:
                 r = urllib.request.Request(url, data=body_bytes, method="POST", headers={
                     "Authorization": "Bearer " + KEY, "Content-Type": "application/json"})
-                with urllib.request.urlopen(r, timeout=600) as resp:
+                with urllib.request.urlopen(r, timeout=UPSTREAM_TIMEOUT) as resp:
                     status, data = resp.status, resp.read()
             except urllib.error.HTTPError as e:
                 status, data = e.code, e.read()

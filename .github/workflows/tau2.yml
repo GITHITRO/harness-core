@@ -40,6 +40,20 @@ jobs:
           python3 -c "import json;print(json.load(open('state/${{ steps.plan.outputs.stage }}/status.json'))['remaining'])" \
             > "$RUNNER_TEMP/remaining_before" 2>/dev/null || echo 999999 > "$RUNNER_TEMP/remaining_before"
           (cat "state/${{ steps.plan.outputs.stage }}"/results*.jsonl 2>/dev/null | wc -l) > "$RUNNER_TEMP/rows_before"
+      - name: Budget (take over the sb share when sb has finished its stage)
+        id: budget
+        if: steps.plan.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          read SB_STAGE SB_BUDGET SB_ON <<< $(python3 -c "import json;s=json.load(open('code/stand/plan.json'))['sb'];print(s['stage'],s['budget'],str(s['enabled']).lower())")
+          SB_REM=$(gh api "repos/$GITHUB_REPOSITORY/contents/$SB_STAGE/status.json?ref=runs-sb" --jq .content 2>/dev/null | base64 -d 2>/dev/null \
+                   | python3 -c "import json,sys;print(json.load(sys.stdin)['remaining'])" 2>/dev/null || echo unknown)
+          SB_ACTIVE=$(gh run list -R "$GITHUB_REPOSITORY" --workflow sb.yml --json status --jq '[.[]|select(.status=="in_progress")]|length' 2>/dev/null || echo 1)
+          B=${{ steps.plan.outputs.budget }}
+          if { [ "$SB_ON" != true ] || [ "$SB_REM" = 0 ]; } && [ "$SB_ACTIVE" = 0 ]; then B=$(( B + SB_BUDGET )); fi
+          [ "$B" -gt 180 ] && B=180
+          echo "sb remaining=$SB_REM active=$SB_ACTIVE -> tau2 budget $B/h"; echo "value=$B" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@v5
         if: steps.plan.outputs.enabled == 'true'
         with: {python-version: "3.12"}
@@ -58,7 +72,7 @@ jobs:
           STAGE="${{ steps.plan.outputs.stage }}"; RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"
           OUT="$GITHUB_WORKSPACE/state/$STAGE"; LOGS="$OUT/logs/$RUN_ID"; mkdir -p "$LOGS"
           KEYF="$RUNNER_TEMP/k"; printf '%s' "$KILO_API_KEY" > "$KEYF"; chmod 600 "$KEYF"; unset KILO_API_KEY
-          UPSTREAM_KEY_FILE="$KEYF" BUDGET="${{ steps.plan.outputs.budget }}" STATE_FILE="$OUT/pacer_state.json" \
+          UPSTREAM_KEY_FILE="$KEYF" BUDGET="${{ steps.budget.outputs.value }}" STATE_FILE="$OUT/pacer_state.json" \
             LOG_DIR="$LOGS" LANE=kilo-tau2 nohup python3 -I code/stand/pacer.py > "$LOGS/pacer.out" 2>&1 &
           sleep 3; rm -f "$KEYF"; curl -sf 127.0.0.1:8787/stats > /dev/null
           export TAU2_DATA_DIR="$GITHUB_WORKSPACE/tau2/data" MODEL="${{ steps.plan.outputs.model }}"
