@@ -270,6 +270,37 @@ def solve(arm, t, work):
         trace["tokens_out"] += u.get("completion_tokens") or 0
         return text
 
+    if arm == "facts":   # ablation A: base + input facts, one call ("improved prompt")
+        text = ask([{"role": "system", "content": SYS},
+                    {"role": "user", "content": prompt + "\n\n" + contract_facts(t, inp)}], "gen")
+        code = extract_code(text)
+        if code:
+            run_code(code, work)
+        trace["steps"].append({"stage": "gen", "has_code": bool(code)})
+        return outp, trace
+
+    if arm == "retry":   # ablation B: base prompt, retry on crash / no code / no output only (no facts, no judge)
+        messages = [{"role": "system", "content": SYS}, {"role": "user", "content": prompt}]
+        for rnd in range(MAX_REPAIR + 1):
+            text = ask(messages, f"gen{rnd}")
+            messages.append({"role": "assistant", "content": text})
+            code = extract_code(text)
+            if os.path.exists(outp):
+                os.remove(outp)
+            if not code:
+                problem = "no ```python code block was found in your answer"
+            else:
+                rc, err = run_code(code, work)
+                if rc == 0 and os.path.exists(outp):
+                    trace["steps"].append({"stage": f"exec{rnd}", "ok": True})
+                    break
+                problem = f"the script exited with code {rc}: {err[-600:]}" if rc != 0 else "the script did not write the output file"
+            trace["steps"].append({"stage": f"exec{rnd}", "ok": False})
+            if rnd == MAX_REPAIR:
+                break
+            messages.append({"role": "user", "content": REPAIR.format(problem=problem, inp=inp, outp=outp)})
+        return outp, trace
+
     if arm == "base":
         text = ask([{"role": "system", "content": SYS}, {"role": "user", "content": prompt}], "gen")
         code = extract_code(text)
@@ -278,7 +309,7 @@ def solve(arm, t, work):
         trace["steps"].append({"stage": "gen", "has_code": bool(code)})
         return outp, trace
 
-    # harness
+    # harness (and ablation "noverify")
     messages = [{"role": "system", "content": SYS},
                 {"role": "user", "content": prompt + "\n\n" + contract_facts(t, inp)}]
     best = None                       # (outp copy) of the last output that passed external checks
@@ -298,6 +329,8 @@ def solve(arm, t, work):
             if ok:
                 best = os.path.join(work, f"passed_{rnd}.xlsx")
                 shutil.copy(outp, best)
+                if arm == "noverify":   # ablation C: facts + program checks + repair, no LLM judge
+                    break
                 verdict = ask([{"role": "user", "content": VERIFY.format(
                     instruction=t["instruction"], pos=effective_position(t), code=code[:6000], dump=dump,
                     preview=preview(inp))}], f"verify{rnd}").strip()
