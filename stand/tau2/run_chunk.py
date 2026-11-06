@@ -20,6 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PACER = os.environ.get("PACER", "http://127.0.0.1:8787").rstrip("/")
 MODEL = os.environ.get("MODEL", "nvidia/nemotron-3.5-super-vl:free")
 AGENTS = {"base": "llm_agent", "harness": "harness_agent"}
+HARNESS_VERSION = "tau2-h2"
 
 
 def task_ids(domain, seed=0):
@@ -52,6 +53,7 @@ def run_one(domain, tid, arm, idx, out, timeout_s):
     p = subprocess.run(cmd, capture_output=True, text=True)
     src = os.path.join(DATA_DIR, "simulations", name, "results.json")
     row = {"idx": idx, "task_id": tid, "arm": arm, "model": MODEL, "rc": p.returncode,
+           "harness_version": HARNESS_VERSION if arm == "harness" else None,
            "wall_s": round(time.time() - t0, 1)}
     if not os.path.exists(src):
         row["error"] = (p.stderr or p.stdout)[-600:]
@@ -75,12 +77,17 @@ def run_one(domain, tid, arm, idx, out, timeout_s):
     return row
 
 
+def _current(r):
+    """Base rows always count; harness rows only for the current harness version."""
+    return r["arm"] != "harness" or r.get("harness_version") == HARNESS_VERSION
+
+
 def summarize(out):
     path = os.path.join(out, "results.jsonl")
     rows = [json.loads(l) for l in open(path)] if os.path.exists(path) else []
-    rows = [r for r in rows if "error" not in r]
-    s = {}
-    for arm in sorted({r["arm"] for r in rows}):
+    rows = [r for r in rows if "error" not in r and _current(r)]
+    s = {"harness_version": HARNESS_VERSION}
+    for arm in sorted({r["arm"] for r in rows if r["arm"] != "harness_version"}):
         rs = [r for r in rows if r["arm"] == arm]
         s[arm] = {"n": len(rs), "pass": sum(r["reward"] >= 0.999 for r in rs),
                   "pass_rate": round(sum(r["reward"] >= 0.999 for r in rs) / len(rs), 3),
@@ -108,24 +115,41 @@ def main():
     os.makedirs(a.out, exist_ok=True)
     path = os.path.join(a.out, "results.jsonl")
     rows = [json.loads(l) for l in open(path)] if os.path.exists(path) else []
-    done = {(r["idx"], r["arm"]) for r in rows if "error" not in r}
+    done = {(r["idx"], r["arm"]) for r in rows if "error" not in r and _current(r)}
     tries = {}
     for r in rows:
+        if not _current(r):
+            continue
         tries[(r["idx"], r["arm"])] = tries.get((r["idx"], r["arm"]), 0) + 1
     ids = task_ids(a.domain)[: a.n]
+    arms = a.arms.split(",")
+    stop = False
     for idx, tid in enumerate(ids):
-        for arm in a.arms.split(","):
+        for arm in arms:
             key = (idx, arm)
             if key in done or tries.get(key, 0) >= a.max_attempts:
                 continue
             if a.deadline and time.time() > a.deadline:
                 print("deadline reached, stopping")
-                return summarize(a.out)
+                stop = True
+                break
             row = run_one(a.domain, tid, arm, idx, a.out, a.timeout)
             with open(path, "a") as f:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
             print(f"{idx:03d} {arm:<8} reward={row.get('reward')} msgs={row.get('n_messages')} "
                   f"{row['wall_s']}s {row.get('error', '')[:160]}", flush=True)
+        if stop:
+            break
+    final = [json.loads(l) for l in open(path)] if os.path.exists(path) else []
+    ok = {(r["idx"], r["arm"]) for r in final if "error" not in r and _current(r)}
+    cnt = {}
+    for r in final:
+        if not _current(r):
+            continue
+        cnt[(r["idx"], r["arm"])] = cnt.get((r["idx"], r["arm"]), 0) + 1
+    remaining = sum((i, arm) not in ok and cnt.get((i, arm), 0) < a.max_attempts
+                    for i in range(len(ids)) for arm in arms)
+    json.dump({"remaining": remaining}, open(os.path.join(a.out, "status.json"), "w"))
     summarize(a.out)
 
 

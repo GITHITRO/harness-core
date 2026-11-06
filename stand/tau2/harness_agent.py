@@ -10,6 +10,9 @@ Same model, same tools, same policy as the stock llm_agent. Differences:
    system prompt (not in the visible history). At most MAX_GATE_ROUNDS reviews per step; after that the
    last candidate goes through, so the arm can never stall.
 3. Fast path: plain messages and READ tool calls pass with zero overhead.
+4. Sticky reviews (h2): a REJECT stays in the system prompt on every later turn until an action of the same
+   tool is approved, so the agent cannot lose the reviewer's to-do list after one regeneration.
+   (h1 kept it for one regeneration only; calib task 1 failed exactly there.)
 
 Registered as agent "harness_agent" by stand/tau2/launch.py.
 """
@@ -82,6 +85,7 @@ class HarnessAgent(LLMAgent):
             if t.name.startswith("transfer_to_human"):
                 self._write_tools.add(t.name)
         self.gate_log = []
+        self.open_reviews = {}   # tool name -> latest reject reason
 
     @property
     def system_prompt(self) -> str:
@@ -108,7 +112,7 @@ class HarnessAgent(LLMAgent):
             state.messages.extend(message.tool_messages)
         else:
             state.messages.append(message)
-        system = state.system_messages
+        system = self._system_with_reviews(state)
         for rnd in range(MAX_GATE_ROUNDS + 1):
             candidate = generate(model=self.llm, tools=self.tools, messages=system + state.messages,
                                  call_name="agent_response", **self.llm_args)
@@ -117,12 +121,23 @@ class HarnessAgent(LLMAgent):
             ok, line, action = self._review(state.messages, candidate)
             self.gate_log.append({"round": rnd, "action": action, "verdict": line[:300]})
             logger.info(f"harness gate round={rnd} action={action[:120]} verdict={line[:160]}")
+            names = {tc.name for tc in self._gated(candidate)}
             if ok:
+                for n in names:
+                    self.open_reviews.pop(n, None)
                 return candidate
-            note = (f"\n\n<review>A reviewer stopped your last proposed action {action}: {line[6:].strip(' :')}\n"
-                    f"Reconsider and choose the correct next step.</review>")
-            system = [SystemMessage(role="system", content=state.system_messages[0].content + note)]
+            for n in names:
+                self.open_reviews[n] = f"{action}: {line[6:].strip(' :')}"
+            system = self._system_with_reviews(state)
         return candidate
+
+    def _system_with_reviews(self, state):
+        if not self.open_reviews:
+            return state.system_messages
+        notes = "\n".join(f"- {v}" for v in list(self.open_reviews.values())[-3:])
+        extra = ("\n\n<open_reviews>A reviewer blocked these actions. Address every point (do the missing steps "
+                 "with the user/tools) before proposing them again:\n" + notes + "\n</open_reviews>")
+        return [SystemMessage(role="system", content=state.system_messages[0].content + extra)]
 
 
 def create_harness_agent(tools, domain_policy, **kwargs):

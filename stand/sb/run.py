@@ -180,7 +180,9 @@ def contract_facts(t, inp):
     return "\n".join(lines)
 
 
-ERR_RE = re.compile(r"^#(REF!|VALUE!|NAME\?|DIV/0!|N/A|NUM!|NULL!)")
+# #N/A is excluded: it is a legitimate expected value in some tasks (calib: 47933 was broken by a repair).
+ERR_RE = re.compile(r"^#(REF!|VALUE!|NAME\?|DIV/0!|NUM!|NULL!)")
+HARNESS_VERSION = "sb-h2"
 
 
 def external_checks(t, out_path, rc, stderr):
@@ -321,7 +323,11 @@ def main():
     done = set()
     if os.path.exists(res_path):
         rows = [json.loads(l) for l in open(res_path, encoding="utf-8") if l.strip()]
-        keep = [r for r in rows if "error" not in r]
+        old = [r for r in rows if "error" not in r and not _current(r)]
+        if old:
+            with open(os.path.join(a.out, "results_superseded.jsonl"), "a", encoding="utf-8") as f:
+                f.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in old)
+        keep = [r for r in rows if "error" not in r and _current(r)]
         with open(res_path, "w", encoding="utf-8") as f:
             f.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in keep)
         done = {(r["id"], r["arm"]) for r in keep}
@@ -331,10 +337,12 @@ def main():
                 continue
             if a.deadline and time.time() > a.deadline:
                 print("deadline reached, stopping")
+                write_status(a.out, order, arms)
                 return summarize(a.out)
             work = tempfile.mkdtemp(prefix="sb_")
             t0 = time.time()
-            rec = {"id": t["id"], "type": t["instruction_type"], "arm": arm, "model": MODEL}
+            rec = {"id": t["id"], "type": t["instruction_type"], "arm": arm, "model": MODEL,
+                   "harness_version": HARNESS_VERSION if arm == "harness" else None}
             try:
                 outp, trace = solve(arm, t, work)
                 rec.update(trace)
@@ -355,12 +363,13 @@ def main():
             print(f"{t['id']:>8} {arm:<8} correct={rec.get('correct')} calls={rec.get('calls')} "
                   f"{rec['latency_s']}s {rec.get('error', '')[:120]}", flush=True)
             shutil.rmtree(work, ignore_errors=True)
+    write_status(a.out, order, arms)
     summarize(a.out)
 
 
 def summarize(out):
     rows = [json.loads(l) for l in open(os.path.join(out, "results.jsonl"), encoding="utf-8") if l.strip()]
-    rows = [r for r in rows if "error" not in r]
+    rows = [r for r in rows if "error" not in r and _current(r)]
     by = {}
     for r in rows:
         by.setdefault(r["arm"], []).append(r)
@@ -375,11 +384,27 @@ def summarize(out):
     for r in rows:
         ids.setdefault(r["id"], {})[r["arm"]] = r["correct"]
     pairs = [v for v in ids.values() if "base" in v and "harness" in v]
+    s["harness_version"] = HARNESS_VERSION
     s["paired"] = {"n": len(pairs), "harness_only": sum(v["harness"] and not v["base"] for v in pairs),
                    "base_only": sum(v["base"] and not v["harness"] for v in pairs)}
     json.dump(s, open(os.path.join(out, "summary.json"), "w"), indent=1)
     print(json.dumps(s))
     return s
+
+
+def _current(r):
+    """Base rows always count; harness rows only for the current harness version."""
+    return r["arm"] != "harness" or r.get("harness_version") == HARNESS_VERSION
+
+
+def write_status(out, order, arms):
+    path = os.path.join(out, "results.jsonl")
+    done = set()
+    if os.path.exists(path):
+        done = {(r["id"], r["arm"]) for r in map(json.loads, open(path, encoding="utf-8"))
+                if "error" not in r and _current(r)}
+    remaining = sum((t["id"], a) not in done for t in order for a in arms)
+    json.dump({"remaining": remaining}, open(os.path.join(out, "status.json"), "w"))
 
 
 if __name__ == "__main__":

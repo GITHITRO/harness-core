@@ -1,6 +1,19 @@
 {
-  "_doc": "What the hourly workflows run. Change stage/n to move from calibration to the main series; results go to branch runs-<lane>/<stage>/. Budgets are requests per hour per lane; keep their sum <= 180 (Kilo free: 200/h).",
-  "model": "nvidia/nemotron-3.5-super-vl:free",
-  "sb":   {"enabled": true, "stage": "calib", "n": 20, "arms": "base,harness", "budget": 80},
-  "tau2": {"enabled": true, "stage": "calib", "domain": "telecom", "n": 5, "arms": "base,harness", "budget": 100}
+ "_doc": "What the hourly workflows run. Change stage/n to move from calibration to the main series; results go to branch runs-<lane>/<stage>/. Budgets are requests per hour per lane; keep their sum <= 180 (Kilo free: 200/h). Each run dispatches the next one while work remains and progress was made (GitHub cron alone fired ~2x in 9 h). Harness rows of an older harness_version are re-run; base rows are kept.",
+ "model": "nvidia/nemotron-3.5-super-vl:free",
+ "sb": {
+  "enabled": true,
+  "stage": "calib",
+  "n": 100,
+  "arms": "base,harness",
+  "budget": 80
+ },
+ "tau2": {
+  "enabled": true,
+  "stage": "calib",
+  "domain": "telecom",
+  "n": 20,
+  "arms": "base,harness",
+  "budget": 100
+ }
 }

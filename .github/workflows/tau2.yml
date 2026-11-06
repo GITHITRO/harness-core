@@ -12,6 +12,7 @@ concurrency:
   cancel-in-progress: false
 permissions:
   contents: write
+  actions: write
 jobs:
   run:
     runs-on: ubuntu-24.04
@@ -36,6 +37,8 @@ jobs:
           git -c http.extraheader="$AUTH" clone -q --depth 1 --branch runs-tau2 "https://github.com/${GITHUB_REPOSITORY}.git" state 2>/dev/null || \
             (mkdir state && cd state && git init -q -b runs-tau2)
           mkdir -p "state/${{ steps.plan.outputs.stage }}"
+          python3 -c "import json;print(json.load(open('state/${{ steps.plan.outputs.stage }}/status.json'))['remaining'])" \
+            > "$RUNNER_TEMP/remaining_before" 2>/dev/null || echo 999999 > "$RUNNER_TEMP/remaining_before"
       - uses: actions/setup-python@v5
         if: steps.plan.outputs.enabled == 'true'
         with: {python-version: "3.12"}
@@ -75,3 +78,16 @@ jobs:
           git add -A && git commit -qm "tau2: run ${GITHUB_RUN_ID}" || exit 0
           AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
           git -c http.extraheader="$AUTH" push -q "https://github.com/${GITHUB_REPOSITORY}.git" HEAD:runs-tau2
+      - name: Chain next run (only if work remains and this run made progress)
+        if: always() && steps.plan.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BEFORE=$(cat "$RUNNER_TEMP/remaining_before")
+          AFTER=$(python3 -c "import json;print(json.load(open('state/${{ steps.plan.outputs.stage }}/status.json'))['remaining'])" 2>/dev/null || echo 0)
+          echo "remaining before=$BEFORE after=$AFTER"
+          if [ "$AFTER" -gt 0 ] && [ "$AFTER" -lt "$BEFORE" ]; then
+            gh workflow run tau2.yml --ref main -R "$GITHUB_REPOSITORY" && echo "next run dispatched"
+          else
+            echo "no chaining"
+          fi
