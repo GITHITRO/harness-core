@@ -55,10 +55,18 @@ def load_tasks():
     for d in ds:
         tid = str(d["id"])
         base = os.path.join(SB_DATA, "spreadsheet", tid)
+        # Upstream naming is not uniform: 1_<id>_init.xlsx / 1_<id>_golden.xlsx for most tasks, initial.xlsx /
+        # golden.xlsx for 13284 32023 32789 56274 58109, and 42930 ships 1_43930_golden.xlsx. Match by suffix.
+        files = sorted(os.listdir(base)) if os.path.isdir(base) else []
+        pick = lambda want, alt: next((os.path.join(base, f) for f in files if f == want), None) or \
+            next((os.path.join(base, f) for f in files if f.endswith(alt)), os.path.join(base, want))
+        init = pick(f"1_{tid}_init.xlsx", "_init.xlsx") if f"1_{tid}_init.xlsx" in files or not "initial.xlsx" in files \
+            else os.path.join(base, "initial.xlsx")
+        gold = pick(f"1_{tid}_golden.xlsx", "_golden.xlsx") if any(f.endswith("_golden.xlsx") for f in files) \
+            else os.path.join(base, "golden.xlsx")
         out.append({"id": tid, "instruction": d["instruction"], "instruction_type": d["instruction_type"],
                     "answer_position": d["answer_position"], "answer_sheet": d.get("answer_sheet") or None,
-                    "init_path": os.path.join(base, f"1_{tid}_init.xlsx"),
-                    "golden_path": os.path.join(base, f"1_{tid}_golden.xlsx")})
+                    "init_path": init, "golden_path": gold})
     return out
 
 
@@ -327,10 +335,10 @@ def main():
         if old:
             with open(os.path.join(a.out, "results_superseded.jsonl"), "a", encoding="utf-8") as f:
                 f.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in old)
-        keep = [r for r in rows if "error" not in r and _current(r)]
+        keep = [r for r in rows if _current(r)]
         with open(res_path, "w", encoding="utf-8") as f:
             f.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in keep)
-        done = {(r["id"], r["arm"]) for r in keep}
+        done = _settled(keep)
     for t in order:
         for arm in arms:                       # paired: base then harness on the same task, back to back
             if (t["id"], arm) in done:
@@ -355,8 +363,8 @@ def main():
                     rec["msg"] = rec["msg"][:200]
                 else:
                     rec["correct"], rec["msg"] = False, "no output file"
-            except RuntimeError as e:
-                rec["error"] = str(e)[:400]
+            except Exception as e:  # one broken task must not stop the lane; recorded, retried once, then skipped
+                rec["error"] = f"{type(e).__name__}: {e}"[:400]
             rec["latency_s"] = round(time.time() - t0, 1)
             with open(res_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
@@ -393,6 +401,22 @@ def summarize(out):
     return s
 
 
+MAX_ATTEMPTS = 2
+
+
+def _settled(rows):
+    """(id, arm) that need no more work: a graded row, or MAX_ATTEMPTS error rows (then skipped in metrics)."""
+    errs = {}
+    ok = set()
+    for r in rows:
+        k = (r["id"], r["arm"])
+        if "error" in r:
+            errs[k] = errs.get(k, 0) + 1
+        else:
+            ok.add(k)
+    return ok | {k for k, n in errs.items() if n >= MAX_ATTEMPTS}
+
+
 def _current(r):
     """Base rows always count; harness rows only for the current harness version."""
     return r["arm"] != "harness" or r.get("harness_version") == HARNESS_VERSION
@@ -402,8 +426,7 @@ def write_status(out, order, arms):
     path = os.path.join(out, "results.jsonl")
     done = set()
     if os.path.exists(path):
-        done = {(r["id"], r["arm"]) for r in map(json.loads, open(path, encoding="utf-8"))
-                if "error" not in r and _current(r)}
+        done = _settled([r for r in map(json.loads, open(path, encoding="utf-8")) if _current(r)])
     remaining = sum((t["id"], a) not in done for t in order for a in arms)
     json.dump({"remaining": remaining}, open(os.path.join(out, "status.json"), "w"))
 

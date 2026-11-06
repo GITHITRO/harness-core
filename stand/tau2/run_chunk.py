@@ -145,7 +145,12 @@ def main():
                 print("deadline reached, stopping")
                 stop = True
                 break
-            row = run_one(a.domain, tid, arm, idx, a.out, a.timeout)
+            try:
+                row = run_one(a.domain, tid, arm, idx, a.out, a.timeout)
+            except Exception as e:  # one broken task must not stop the lane; max_attempts then skips it
+                row = {"idx": idx, "task_id": tid, "arm": arm, "model": MODEL, "wall_s": 0.0,
+                       "harness_version": HARNESS_VERSION if arm == "harness" else None,
+                       "error": f"{type(e).__name__}: {e}"[:400]}
             with open(path, "a") as f:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
             write_status(a.out, len(ids), arms, a.max_attempts)
