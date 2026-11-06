@@ -15,6 +15,30 @@
   "tokens_in": 539342,
   "tokens_out": 1631389
  },
+ "facts": {
+  "n": 21,
+  "correct": 10,
+  "accuracy": 0.476,
+  "calls_per_task": 1.0,
+  "tokens_in": 21078,
+  "tokens_out": 119559
+ },
+ "retry": {
+  "n": 20,
+  "correct": 9,
+  "accuracy": 0.45,
+  "calls_per_task": 1.1,
+  "tokens_in": 16603,
+  "tokens_out": 88241
+ },
+ "noverify": {
+  "n": 20,
+  "correct": 11,
+  "accuracy": 0.55,
+  "calls_per_task": 1.25,
+  "tokens_in": 33168,
+  "tokens_out": 90719
+ },
  "harness_version": "sb-h2",
  "paired": {
   "n": 100,
