@@ -360,6 +360,7 @@ def main():
             rec["latency_s"] = round(time.time() - t0, 1)
             with open(res_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            write_status(a.out, order, arms)          # after every task: a cancelled job still leaves a true status
             print(f"{t['id']:>8} {arm:<8} correct={rec.get('correct')} calls={rec.get('calls')} "
                   f"{rec['latency_s']}s {rec.get('error', '')[:120]}", flush=True)
             shutil.rmtree(work, ignore_errors=True)

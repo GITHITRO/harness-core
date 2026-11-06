@@ -16,7 +16,7 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-24.04
-    timeout-minutes: 70
+    timeout-minutes: 100
     steps:
       - uses: actions/checkout@v4
         with: {path: code, persist-credentials: false}
@@ -39,6 +39,7 @@ jobs:
           mkdir -p "state/${{ steps.plan.outputs.stage }}"
           python3 -c "import json;print(json.load(open('state/${{ steps.plan.outputs.stage }}/status.json'))['remaining'])" \
             > "$RUNNER_TEMP/remaining_before" 2>/dev/null || echo 999999 > "$RUNNER_TEMP/remaining_before"
+          (cat "state/${{ steps.plan.outputs.stage }}"/results*.jsonl 2>/dev/null | wc -l) > "$RUNNER_TEMP/rows_before"
       - uses: actions/setup-python@v5
         if: steps.plan.outputs.enabled == 'true'
         with: {python-version: "3.12"}
@@ -86,9 +87,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BEFORE=$(cat "$RUNNER_TEMP/remaining_before")
-          AFTER=$(python3 -c "import json;print(json.load(open('state/${{ steps.plan.outputs.stage }}/status.json'))['remaining'])" 2>/dev/null || echo 0)
-          echo "remaining before=$BEFORE after=$AFTER"
-          if [ "$AFTER" -gt 0 ] && [ "$AFTER" -lt "$BEFORE" ]; then
+          AFTER=$(python3 -c "import json;print(json.load(open('state/${{ steps.plan.outputs.stage }}/status.json'))['remaining'])" 2>/dev/null || echo unknown)
+          ROWS_BEFORE=$(cat "$RUNNER_TEMP/rows_before"); ROWS_AFTER=$(cat "state/${{ steps.plan.outputs.stage }}"/results*.jsonl 2>/dev/null | wc -l)
+          echo "remaining before=$BEFORE after=$AFTER rows before=$ROWS_BEFORE after=$ROWS_AFTER"
+          if [ "$ROWS_AFTER" -gt "$ROWS_BEFORE" ] && { [ "$AFTER" = unknown ] || [ "$AFTER" -gt 0 ]; }; then
             gh workflow run sb.yml --ref main -R "$GITHUB_REPOSITORY" && echo "next run dispatched"
           else
             echo "no chaining"

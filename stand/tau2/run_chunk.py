@@ -82,6 +82,18 @@ def _current(r):
     return r["arm"] != "harness" or r.get("harness_version") == HARNESS_VERSION
 
 
+def write_status(out, n_ids, arms, max_attempts):
+    path = os.path.join(out, "results.jsonl")
+    rows = [json.loads(l) for l in open(path)] if os.path.exists(path) else []
+    ok = {(r["idx"], r["arm"]) for r in rows if "error" not in r and _current(r)}
+    cnt = {}
+    for r in rows:
+        if _current(r):
+            cnt[(r["idx"], r["arm"])] = cnt.get((r["idx"], r["arm"]), 0) + 1
+    remaining = sum((i, arm) not in ok and cnt.get((i, arm), 0) < max_attempts for i in range(n_ids) for arm in arms)
+    json.dump({"remaining": remaining}, open(os.path.join(out, "status.json"), "w"))
+
+
 def summarize(out):
     path = os.path.join(out, "results.jsonl")
     rows = [json.loads(l) for l in open(path)] if os.path.exists(path) else []
@@ -136,20 +148,12 @@ def main():
             row = run_one(a.domain, tid, arm, idx, a.out, a.timeout)
             with open(path, "a") as f:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
+            write_status(a.out, len(ids), arms, a.max_attempts)
             print(f"{idx:03d} {arm:<8} reward={row.get('reward')} msgs={row.get('n_messages')} "
                   f"{row['wall_s']}s {row.get('error', '')[:160]}", flush=True)
         if stop:
             break
-    final = [json.loads(l) for l in open(path)] if os.path.exists(path) else []
-    ok = {(r["idx"], r["arm"]) for r in final if "error" not in r and _current(r)}
-    cnt = {}
-    for r in final:
-        if not _current(r):
-            continue
-        cnt[(r["idx"], r["arm"])] = cnt.get((r["idx"], r["arm"]), 0) + 1
-    remaining = sum((i, arm) not in ok and cnt.get((i, arm), 0) < a.max_attempts
-                    for i in range(len(ids)) for arm in arms)
-    json.dump({"remaining": remaining}, open(os.path.join(a.out, "status.json"), "w"))
+    write_status(a.out, len(ids), arms, a.max_attempts)
     summarize(a.out)
 
 
