@@ -75,7 +75,11 @@ def main():
         res = content(f"runs-{lane}", f"{cfg['stage']}/results.jsonl")
         rows = [json.loads(l) for l in (res or "").splitlines() if l.strip()]
         rows = [r for r in rows if "error" not in r]
-        if lane == "sb":
+        if lane == "sb" and cfg.get("script") == "lhaw":
+            summ = content(f"runs-{lane}", f"{cfg['stage']}/summary.json")
+            detail += ["", "## SpreadsheetBench, underspecified (LHAW: output location removed, asking allowed)", "",
+                       "```", summ or "no summary yet", "```"]
+        elif lane == "sb":
             cur = {"harness": "sb-h2"}
             by = {}
             for r in rows:

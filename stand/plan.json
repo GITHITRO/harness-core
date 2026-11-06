@@ -3,10 +3,11 @@
  "model": "nvidia/nemotron-3.5-super-vl:free",
  "sb": {
   "enabled": true,
-  "stage": "calib",
+  "stage": "lhaw",
   "n": 100,
-  "arms": "base,harness,facts,retry,noverify",
-  "budget": 80
+  "arms": "u_noask,u_ask,u_nv_ask",
+  "budget": 80,
+  "script": "lhaw"
  },
  "tau2": {
   "enabled": true,

@@ -26,7 +26,7 @@ jobs:
           python3 - <<'EOF' >> "$GITHUB_OUTPUT"
           import json; p = json.load(open("code/stand/plan.json")); s = p["sb"]
           print(f"enabled={str(s['enabled']).lower()}"); print(f"stage={s['stage']}"); print(f"n={s['n']}")
-          print(f"arms={s['arms']}"); print(f"budget={s['budget']}"); print(f"model={p['model']}")
+          print(f"arms={s['arms']}"); print(f"budget={s['budget']}"); print(f"model={p['model']}"); print(f"script={s.get('script', 'run')}")
           EOF
       - name: State branch
         if: steps.plan.outputs.enabled == 'true'
@@ -76,7 +76,7 @@ jobs:
           export SB_DATA="$GITHUB_WORKSPACE/sbdata/spreadsheetbench_verified_400" SB_REPO="$GITHUB_WORKSPACE/sbrepo"
           export MODEL="${{ steps.plan.outputs.model }}"
           DEADLINE=$(( $(date +%s) + 50*60 ))
-          ( cd "$RUNNER_TEMP" && python3 -I "$GITHUB_WORKSPACE/code/stand/sb/run.py" --arms "${{ steps.plan.outputs.arms }}" \
+          ( cd "$RUNNER_TEMP" && python3 -I "$GITHUB_WORKSPACE/code/stand/sb/${{ steps.plan.outputs.script }}.py" --arms "${{ steps.plan.outputs.arms }}" \
               --n "${{ steps.plan.outputs.n }}" --out "$OUT" --deadline "$DEADLINE" ) 2>&1 | tee "$LOGS/run.out" || true
           curl -s 127.0.0.1:8787/stats > "$LOGS/pacer_stats.json" || true
           pkill -f stand/pacer.py || true; sleep 1
