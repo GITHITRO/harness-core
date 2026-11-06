@@ -1,0 +1,40 @@
+Cell values in the specified range are identical.
+   58109 base     correct=True calls=1 44.7s 
+Cell values in the specified range are identical.
+   58109 harness  correct=True calls=2 176.3s 
+  209-30 base     correct=False calls=1 17.1s 
+  209-30 harness  correct=False calls=2 40.9s 
+   46646 base     correct=False calls=1 160.7s 
+   46646 harness  correct=False calls=2 292.0s 
+   49300 base     correct=False calls=1 14.0s 
+   49300 harness  correct=False calls=3 130.2s 
+  448-11 base     correct=False calls=1 19.6s 
+Cell values in the specified range are identical.
+  448-11 harness  correct=True calls=2 154.2s 
+Cell values in the specified range are identical.
+   51262 base     correct=True calls=1 14.9s 
+Cell values in the specified range are identical.
+   51262 harness  correct=True calls=2 53.3s 
+Cell values in the specified range are identical.
+   56599 base     correct=True calls=1 83.9s 
+Cell values in the specified range are identical.
+   56599 harness  correct=True calls=2 93.2s 
+  353-29 base     correct=False calls=1 26.7s 
+Cell values in the specified range are identical.
+  353-29 harness  correct=True calls=2 172.3s 
+   36277 base     correct=False calls=1 81.9s 
+   36277 harness  correct=False calls=4 215.7s 
+Cell values in the specified range are identical.
+   55421 base     correct=True calls=1 156.6s 
+Cell values in the specified range are identical.
+   55421 harness  correct=True calls=2 294.5s 
+Cell values in the specified range are identical.
+   42526 base     correct=True calls=1 37.0s 
+Cell values in the specified range are identical.
+   42526 harness  correct=True calls=3 256.1s 
+  194-19 base     correct=False calls=1 83.0s 
+  194-19 harness  correct=False calls=2 292.8s 
+   51289 base     correct=False calls=1 30.6s 
+Cell values in the specified range are identical.
+   51289 harness  correct=True calls=2 116.1s 
+{"base": {"n": 100, "correct": 49, "accuracy": 0.49, "calls_per_task": 1.0, "tokens_in": 134182, "tokens_out": 428369}, "harness": {"n": 100, "correct": 64, "accuracy": 0.64, "calls_per_task": 2.64, "tokens_in": 539342, "tokens_out": 1631389}, "harness_version": "sb-h2", "paired": {"n": 100, "harness_only": 19, "base_only": 4}}
