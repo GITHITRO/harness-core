@@ -1,0 +1,1 @@
+{"lane": "kilo-tau2", "budget": 100, "attempts": 100, "ok": 100, "http_429": 0, "http_5xx": 0, "errors": 0, "prompt_tokens": 704153, "completion_tokens": 37615, "started": 1793974817.492837, "in_window": 100}
