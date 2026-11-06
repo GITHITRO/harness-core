@@ -34,3 +34,10 @@ Model: `nvidia/nemotron-3.5-super-vl:free` via Kilo Gateway, for the agent and f
 Model-generated spreadsheet code runs in a subprocess with a clean environment. The Kilo key is read by the pacer from
 a temp file that is deleted right after start. Checkouts keep no credentials. The push token appears only in the
 clone and commit steps, passed as a one-off header.
+
+## OpenCode package
+
+`opencode/` is the core packaged for OpenCode: primary agent `core`, read-only subagents (`hc-scout`, `hc-redteam`,
+`hc-verifier`), method cards as skills, commands `/hc-intent` `/hc-probe` `/hc-verify` `/hc-aar`, and a plugin that
+enforces the intent gate, read-only roles, human-approved one-way doors, the sticky contract and a journal.
+Install: [`opencode/INSTALL.md`](opencode/INSTALL.md). Base-vs-harness protocol with `/goal`: [`opencode/EVAL.md`](opencode/EVAL.md).
