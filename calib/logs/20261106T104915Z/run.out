@@ -1,0 +1,64 @@
+Cell values in the specified range are identical.
+   263-1 base     correct=True calls=1 26.6s 
+Cell values in the specified range are identical.
+   263-1 harness  correct=True calls=2 143.1s 
+   50682 base     correct=False calls=1 91.1s 
+   50682 harness  correct=False calls=4 226.6s 
+   33722 base     correct=False calls=1 53.3s 
+   33722 harness  correct=False calls=4 226.0s 
+Cell values in the specified range are identical.
+  414-20 base     correct=True calls=1 5.6s 
+Cell values in the specified range are identical.
+  414-20 harness  correct=True calls=2 111.2s 
+Cell values in the specified range are identical.
+   52807 base     correct=True calls=1 40.3s 
+Cell values in the specified range are identical.
+   52807 harness  correct=True calls=4 294.5s 
+Cell values in the specified range are identical.
+   42181 base     correct=True calls=1 19.4s 
+Cell values in the specified range are identical.
+   42181 harness  correct=True calls=2 76.7s 
+   23-24 base     correct=False calls=1 26.9s 
+Cell values in the specified range are identical.
+   23-24 harness  correct=True calls=2 86.1s 
+Cell values in the specified range are identical.
+   41348 base     correct=True calls=1 39.1s 
+Cell values in the specified range are identical.
+   41348 harness  correct=True calls=2 46.7s 
+   42216 base     correct=False calls=1 66.5s 
+   42216 harness  correct=False calls=4 295.8s 
+Cell values in the specified range are identical.
+  280-17 base     correct=True calls=1 18.6s 
+Cell values in the specified range are identical.
+  280-17 harness  correct=True calls=2 78.8s 
+Cell values in the specified range are identical.
+   57445 base     correct=True calls=1 11.6s 
+Cell values in the specified range are identical.
+   57445 harness  correct=True calls=2 64.4s 
+Cell values in the specified range are identical.
+   37086 base     correct=True calls=1 79.9s 
+Cell values in the specified range are identical.
+   37086 harness  correct=True calls=2 17.2s 
+  341-40 base     correct=False calls=1 9.3s 
+  341-40 harness  correct=False calls=2 19.5s 
+Cell values in the specified range are identical.
+   54675 base     correct=True calls=1 5.0s 
+Cell values in the specified range are identical.
+   54675 harness  correct=True calls=2 41.6s 
+Cell values in the specified range are identical.
+   49333 base     correct=True calls=1 17.8s 
+Cell values in the specified range are identical.
+   49333 harness  correct=True calls=2 73.7s 
+   45372 base     correct=False calls=1 10.6s 
+   45372 harness  correct=False calls=2 55.5s 
+Cell values in the specified range are identical.
+  367-23 base     correct=True calls=1 19.6s 
+Cell values in the specified range are identical.
+  367-23 harness  correct=True calls=2 68.9s 
+   31628 base     correct=False calls=1 14.3s 
+Cell values in the specified range are identical.
+   31628 harness  correct=True calls=2 194.1s 
+   56378 base     correct=False calls=1 154.0s 
+   56378 harness  correct=False calls=6 729.4s 
+deadline reached, stopping
+{"base": {"n": 53, "correct": 28, "accuracy": 0.528, "calls_per_task": 1.0, "tokens_in": 35793, "tokens_out": 217033}, "harness": {"n": 53, "correct": 33, "accuracy": 0.623, "calls_per_task": 2.57, "tokens_in": 155465, "tokens_out": 848810}, "harness_version": "sb-h2", "paired": {"n": 53, "harness_only": 7, "base_only": 2}}
