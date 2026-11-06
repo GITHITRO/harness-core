@@ -1,0 +1,1 @@
+{"base": {"n": 20, "correct": 10, "accuracy": 0.5, "calls_per_task": 1.0, "tokens_in": 13331, "tokens_out": 71032}, "harness": {"n": 20, "correct": 11, "accuracy": 0.55, "calls_per_task": 2.5, "tokens_in": 57672, "tokens_out": 281325}, "paired": {"n": 20, "harness_only": 3, "base_only": 2}}
