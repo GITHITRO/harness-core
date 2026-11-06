@@ -105,3 +105,14 @@ jobs:
           else
             echo "no chaining"
           fi
+      - name: Status page + restart an idle lane (no LLM)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p status && cd status && git init -q -b status
+          python3 -I ../code/stand/check.py --out STATUS.md --dispatch | head -8
+          git config user.name "harness-stand"; git config user.email "harness-stand@users.noreply.github.com"
+          git add STATUS.md && git commit -qm "status ${GITHUB_RUN_ID}"
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git -c http.extraheader="$AUTH" push -q -f "https://github.com/${GITHUB_REPOSITORY}.git" HEAD:status

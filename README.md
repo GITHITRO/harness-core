@@ -2,6 +2,7 @@
 
 > **Install into OpenCode (human):** `git clone --depth 1 https://github.com/GITHITRO/harness-core /tmp/harness-core && bash /tmp/harness-core/opencode/install.sh /path/to/project`, then in OpenCode press Tab → agent `core`. Details: [opencode/INSTALL.md](opencode/INSTALL.md).
 > **Let an AI agent install it:** tell it *"Install harness-core into this project following https://github.com/GITHITRO/harness-core/blob/main/opencode/AGENT.md and report the checks."*
+> **Live stand status:** [STATUS.md on branch `status`](https://github.com/GITHITRO/harness-core/blob/status/STATUS.md)
 > **Compare base vs harness on a real task:** [opencode/EVAL.md](opencode/EVAL.md) + `opencode/eval/compare.py`.
 
 The meta-cognitive harness core (spec v0.1) and its evaluation stand.
