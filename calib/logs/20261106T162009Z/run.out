@@ -1,0 +1,44 @@
+[32m2026-11-06 16:20:13.959[0m | [33m[1mWARNING [0m | [36mtau2.utils.utils[0m:[36m<module>[0m:[36m15[0m - [33m[1mNo .env file found[0m
+[32m2026-11-06 16:20:13.959[0m | [1mINFO    [0m | [36mtau2.utils.utils[0m:[36m<module>[0m:[36m23[0m - [1mUsing data directory from environment: /home/runner/work/harness-core/harness-core/tau2/data[0m
+[32m2026-11-06 16:20:18.311[0m | [1mINFO    [0m | [36mtau2.utils.llm_utils[0m:[36m<module>[0m:[36m102[0m - [1mLiteLLM: Cache is disabled[0m
+[32m2026-11-06 16:20:18.418[0m | [34m[1mDEBUG   [0m | [36mtau2.registry[0m:[36m<module>[0m:[36m281[0m - [34m[1mRegistering default components...[0m
+[32m2026-11-06 16:20:18.512[0m | [34m[1mDEBUG   [0m | [36mtau2.registry[0m:[36m<module>[0m:[36m292[0m - [34m[1mVoice dependencies not installed, skipping voice user registration[0m
+[32m2026-11-06 16:20:18.513[0m | [34m[1mDEBUG   [0m | [36mtau2.registry[0m:[36m<module>[0m:[36m350[0m - [34m[1mDefault components registered successfully. Registry info: {
+  "domains": [
+    "mock",
+    "airline",
+    "retail",
+    "telecom",
+    "telecom-workflow",
+    "banking_knowledge"
+  ],
+  "agents": [
+    "llm_agent",
+    "llm_agent_gt",
+    "llm_agent_solo",
+    "discrete_time_audio_native_agent"
+  ],
+  "users": [
+    "user_simulator",
+    "dummy_user"
+  ],
+  "task_sets": [
+    "mock",
+    "airline",
+    "retail",
+    "telecom_full",
+    "telecom_small",
+    "telecom",
+    "telecom-workflow",
+    "banking_knowledge"
+  ]
+}[0m
+009 harness  reward=1.0 msgs=44 106.4s 
+010 base     reward=0.0 msgs=26 83.3s 
+010 harness  reward=1.0 msgs=89 216.6s 
+011 base     reward=0.0 msgs=64 169.8s 
+011 harness  reward=0.0 msgs=32 1068.8s 
+012 base     reward=1.0 msgs=42 198.8s 
+012 harness  reward=0.0 msgs=19 1804.9s 
+deadline reached, stopping
+{"harness_version": "tau2-h2", "base": {"n": 13, "pass": 9, "pass_rate": 0.692, "mean_messages": 55.9}, "harness": {"n": 13, "pass": 8, "pass_rate": 0.615, "mean_messages": 51.8}, "paired": {"n": 13, "harness_only": 3, "base_only": 4}}
