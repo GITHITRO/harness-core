@@ -1,0 +1,4 @@
+[
+ {"name": "gemini-3.5-flash", "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", "model": "gemini-3.5-flash", "key_env": "GEMINI_API_KEY"},
+ {"name": "dots-3-note", "url": "https://ai-gateway.kilo.ai/api/v1/chat/completions", "model": "dots-studio/dots-3-note-preview:free", "key_env": "KILO_API_KEY"}
+]

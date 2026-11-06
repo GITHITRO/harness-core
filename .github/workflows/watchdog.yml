@@ -1,0 +1,37 @@
+name: watchdog
+# Restarts a lane that is idle while its stage still has work. Complements the self-chaining in each lane:
+# chaining covers normal operation, the watchdog covers a lane that stopped (failed run, missed dispatch).
+on:
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch: {}
+concurrency:
+  group: watchdog
+  cancel-in-progress: true
+permissions:
+  contents: read
+  actions: write
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Check lanes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for lane in sb tau2; do
+            enabled=$(python3 -c "import json;print(str(json.load(open('stand/plan.json'))['$lane']['enabled']).lower())")
+            stage=$(python3 -c "import json;print(json.load(open('stand/plan.json'))['$lane']['stage'])")
+            [ "$enabled" = true ] || { echo "$lane: disabled"; continue; }
+            active=$(gh run list -R "$GITHUB_REPOSITORY" --workflow "$lane.yml" --json status \
+                     --jq '[.[] | select(.status=="in_progress" or .status=="queued" or .status=="waiting" or .status=="pending")] | length')
+            remaining=$(gh api "repos/$GITHUB_REPOSITORY/contents/$stage/status.json?ref=runs-$lane" --jq .content 2>/dev/null \
+                        | base64 -d 2>/dev/null | python3 -c "import json,sys;print(json.load(sys.stdin)['remaining'])" 2>/dev/null || echo unknown)
+            echo "$lane: active=$active remaining=$remaining"
+            if [ "$active" = 0 ] && [ "$remaining" != 0 ]; then
+              gh workflow run "$lane.yml" --ref main -R "$GITHUB_REPOSITORY" && echo "$lane: restarted"
+            fi
+          done

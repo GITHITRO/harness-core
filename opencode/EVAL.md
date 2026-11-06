@@ -26,6 +26,30 @@ Goal: measure whether harness-core gives a gain over the same model in plain Ope
 
 Export both sessions: `opencode export <sessionID> > base.json` / `harness.json` — keep them for the analysis.
 
+## Verdict: metric + logic of the traces
+Run `eval/compare.py` on the two exports. It computes cost per arm from the exports and asks a jury of LLMs from
+other model families than the worker (default: `eval/judges.example.json` — Gemini 3.5 Flash and dots-3-note via
+Kilo) to score both traces blind on 8 criteria: goal, uncertainty, options, grounding, verification, recovery,
+efficiency, honesty. Each judge sees the pair twice in swapped order; only a preference that survives the swap counts.
+
+```
+GEMINI_API_KEY=... KILO_API_KEY=... python3 eval/compare.py --base base.json --harness harness.json \
+  --task task.md --metric-base 0.62 --metric-harness 0.71 --higher-better --judges eval/judges.example.json --out report
+```
+
+| metric | logic (jury) | verdict |
+|---|---|---|
+| up | harness preferred by the majority in both orders, mean rubric ≥ base | **PASS** |
+| up | not convincing | luck: outcome without a sound process |
+| equal | — | no metric gain; the cost decides |
+| not up | harness preferred | process better, outcome not |
+| not up | not preferred | FAIL |
+
+Read `report.md` too: the judges' failure lists are the most useful part for improving the harness.
+Smoke check of this tool (trivial slugify task, both arms 100% tests): first harness version lost on efficiency
+(ceremony, and a gate-format bug sent the agent reading the plugin); after the fix it tied on outcome with
++28% input tokens and slightly better rubric — the expected "not worse" on a task that does not need the harness.
+
 ## Variance
 One run per arm is anecdote: our calibration showed run-to-run noise of ±2–3 tasks out of 20 at temperature 0.6.
 Do at least 3 runs per arm if the task allows, alternate the order (base, harness, harness, base, …), and compare

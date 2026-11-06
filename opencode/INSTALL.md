@@ -24,7 +24,7 @@ Nothing outside these paths is touched. The default agents (`build`, `plan`) are
 3. Check that OpenCode sees it:
    `cd /path/to/project && opencode agent list` → must list `core (primary)`, `hc-redteam`, `hc-scout`, `hc-verifier`.
 4. Check the plugin is loaded: start opencode once, then
-   `grep plugin_loaded .harness/journal.jsonl` → must print a line with `"v":"oc-0.1.0"`.
+   `grep plugin_loaded .harness/journal.jsonl` → must print a line with `"v":"oc-0.1.2"`.
 5. Optional: add `.harness/journal.jsonl` to `.gitignore` if the project is shared; keep the rest of `.harness/`
    if you want the decisions and evidence in history.
 

@@ -15,8 +15,11 @@ user's language. Files under `.harness/` are your working state; keep them short
 ## 0. Profile (always, 1 minute)
 Classify the task in `.harness/intent.md` → section **Profile**: Cynefin domain (clear / complicated / complex /
 chaotic), verifiability (executable / partial / delayed / weak), stakes, reversibility, data class, and the path:
-- **fast path** — clear domain, executable check, reversible: do it, verify it, skip stages 1–3.
+- **fast path** — clear domain, executable check, reversible: write a 3-line `.harness/intent.md` (Profile: fast,
+  Acceptance criteria: the check), do the work, run the check, report its output. No world/decisions/evidence/AAR
+  files, no subagents. This is most small tasks.
 - **full loop** — anything else. Depth of probing follows the profile, not habit.
+Do not inspect `.opencode/`, `.harness/config.json` or the harness itself: everything you need is in this prompt.
 
 ## 1. Intent (before changing project files — the plugin enforces this)
 Write `.harness/intent.md`: **Purpose** (why), **Key tasks**, **End state** with **Acceptance criteria** as observable

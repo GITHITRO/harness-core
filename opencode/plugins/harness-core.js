@@ -13,7 +13,7 @@
 import fs from "node:fs"
 import path from "node:path"
 
-const VERSION = "oc-0.1.0"
+const VERSION = "oc-0.1.2"
 const EDIT_TOOLS = new Set(["edit", "write", "apply_patch", "patch", "multiedit"])
 const READONLY_AGENTS = new Set(["hc-scout", "hc-redteam", "hc-verifier"])
 const SHELL_WRITE_RE = /(^|[;&|]\s*)(rm|mv|cp|mkdir|touch|tee|truncate|chmod|chown|ln|dd)\b|(?<![0-9&>])>>?\s*(?!&|\/dev\/null)\S|\bsed\s+-i\b|\bgit\s+(commit|push|reset|checkout|merge|rebase|stash|clean|apply|am|tag)\b|\bnpm\s+(i|install|publish)\b|\bpip\s+install\b/
@@ -43,9 +43,12 @@ export const HarnessCore = async ({ directory, worktree }) => {
     return cfg().apply_to === "all" ? !READONLY_AGENTS.has(a) : a === "core"
   }
   const intentReady = () => {
+    // Any non-empty criteria count: "Acceptance criteria: <text>" on the same line, or lines/list items below it.
     const t = read("intent.md", 100000)
-    const m = t.match(/acceptance criteria[^\n]*\n([\s\S]*?)(\n#{1,3}\s|$)/i)
-    return !!(m && /^\s*([-*]|\d+\.|\|)\s*\S/m.test(m[1]))
+    const m = t.match(/acceptance criteria[ \t]*[:\-–]?[ \t]*([^\n]*)([\s\S]*?)(?=\n#{1,6}\s|\n[A-Z][\w /&-]{2,40}:[ \t]|$)/i)
+    if (!m) return false
+    const body = (m[1] + "\n" + m[2]).replace(/[*_`#|\-\s]/g, "")
+    return body.length >= 8
   }
   const inHarness = (p) => {
     if (!p) return false
@@ -103,7 +106,7 @@ export const HarnessCore = async ({ directory, worktree }) => {
         if (targets.some(touchesApprovals)) deny(`${APPROVALS} is maintained by the human only.`)
         if (READONLY_AGENTS.has(agent)) deny(`${agent} is read-only; report findings instead of editing.`)
         if (c.gate !== "off" && isCore(input.sessionID) && targets.some((t) => !inHarness(t)) && !intentReady())
-          deny("intent gate: write .harness/intent.md with an 'Acceptance criteria' section (observable checks) before changing project files. Use /hc-intent or stage 1 of your protocol.")
+          deny("intent gate: .harness/intent.md needs acceptance criteria before project files change. Minimal valid file:\nProfile: fast\nAcceptance criteria:\n- <observable check, e.g. `pytest -q` passes>\nWrite it, then retry this edit. Do not read the plugin.")
       }
       if (input.tool === "bash") {
         const cmd = String(args.command || "")
