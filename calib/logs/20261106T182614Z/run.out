@@ -1,0 +1,73 @@
+Cell values in the specified range are identical.
+   263-1 noverify correct=True calls=1 38.1s 
+   50682 facts    correct=False calls=1 89.2s 
+   50682 retry    correct=False calls=1 93.2s 
+   50682 noverify correct=False calls=1 97.6s 
+   33722 facts    correct=False calls=1 32.4s 
+   33722 retry    correct=False calls=2 225.8s 
+   33722 noverify correct=False calls=2 326.4s 
+Cell values in the specified range are identical.
+  414-20 facts    correct=True calls=1 17.4s 
+Cell values in the specified range are identical.
+  414-20 retry    correct=True calls=1 9.8s 
+Cell values in the specified range are identical.
+  414-20 noverify correct=True calls=1 14.7s 
+Cell values in the specified range are identical.
+   52807 facts    correct=True calls=1 33.5s 
+Cell values in the specified range are identical.
+   52807 retry    correct=True calls=1 50.7s 
+Cell values in the specified range are identical.
+   52807 noverify correct=True calls=1 119.5s 
+Cell values in the specified range are identical.
+   42181 facts    correct=True calls=1 96.3s 
+Cell values in the specified range are identical.
+   42181 retry    correct=True calls=2 189.8s 
+Cell values in the specified range are identical.
+   42181 noverify correct=True calls=1 74.1s 
+Cell values in the specified range are identical.
+   23-24 facts    correct=True calls=1 36.0s 
+Cell values in the specified range are identical.
+   23-24 retry    correct=True calls=1 47.1s 
+Cell values in the specified range are identical.
+   23-24 noverify correct=True calls=1 24.2s 
+Cell values in the specified range are identical.
+   41348 facts    correct=True calls=1 42.0s 
+Cell values in the specified range are identical.
+   41348 retry    correct=True calls=1 61.3s 
+Cell values in the specified range are identical.
+   41348 noverify correct=True calls=1 41.7s 
+   42216 facts    correct=False calls=1 136.4s 
+   42216 retry    correct=False calls=1 274.1s 
+   42216 noverify correct=False calls=2 271.0s 
+Cell values in the specified range are identical.
+  280-17 facts    correct=True calls=1 20.7s 
+Cell values in the specified range are identical.
+  280-17 retry    correct=True calls=1 34.9s 
+  280-17 noverify correct=False calls=1 42.1s 
+Cell values in the specified range are identical.
+   57445 facts    correct=True calls=1 39.5s 
+Cell values in the specified range are identical.
+   57445 retry    correct=True calls=1 57.7s 
+Cell values in the specified range are identical.
+   57445 noverify correct=True calls=1 23.3s 
+Cell values in the specified range are identical.
+   37086 facts    correct=True calls=1 8.6s 
+Cell values in the specified range are identical.
+   37086 retry    correct=True calls=1 14.8s 
+Cell values in the specified range are identical.
+   37086 noverify correct=True calls=1 11.6s 
+  341-40 facts    correct=False calls=1 3.9s 
+  341-40 retry    correct=False calls=1 18.2s 
+  341-40 noverify correct=False calls=1 10.0s 
+Cell values in the specified range are identical.
+   54675 facts    correct=True calls=1 12.3s 
+Cell values in the specified range are identical.
+   54675 retry    correct=True calls=1 83.7s 
+Cell values in the specified range are identical.
+   54675 noverify correct=True calls=1 17.5s 
+   49333 facts    correct=False calls=1 61.9s 
+   49333 retry    correct=False calls=1 54.5s 
+Cell values in the specified range are identical.
+   49333 noverify correct=True calls=1 44.6s 
+deadline reached, stopping
+{"base": {"n": 100, "correct": 49, "accuracy": 0.49, "calls_per_task": 1.0, "tokens_in": 134182, "tokens_out": 428369}, "harness": {"n": 100, "correct": 64, "accuracy": 0.64, "calls_per_task": 2.64, "tokens_in": 539342, "tokens_out": 1631389}, "facts": {"n": 49, "correct": 26, "accuracy": 0.531, "calls_per_task": 1.0, "tokens_in": 48363, "tokens_out": 271333}, "retry": {"n": 49, "correct": 25, "accuracy": 0.51, "calls_per_task": 1.1, "tokens_in": 38493, "tokens_out": 285984}, "noverify": {"n": 49, "correct": 28, "accuracy": 0.571, "calls_per_task": 1.24, "tokens_in": 72036, "tokens_out": 305641}, "harness_version": "sb-h2", "paired": {"n": 100, "harness_only": 19, "base_only": 4}}
