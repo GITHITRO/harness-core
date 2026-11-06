@@ -1,0 +1,66 @@
+   44296 retry    correct=False calls=1 96.7s 
+   44296 noverify correct=False calls=1 30.1s 
+Cell values in the specified range are identical.
+   160-6 facts    correct=True calls=1 18.8s 
+Cell values in the specified range are identical.
+   160-6 retry    correct=True calls=1 13.5s 
+Cell values in the specified range are identical.
+   160-6 noverify correct=True calls=1 41.9s 
+Cell values in the specified range are identical.
+   51586 facts    correct=True calls=1 23.1s 
+   51586 retry    correct=False calls=1 16.6s 
+Cell values in the specified range are identical.
+   51586 noverify correct=True calls=1 34.5s 
+    1818 facts    correct=False calls=1 61.0s 
+    1818 retry    correct=False calls=2 158.8s 
+    1818 noverify correct=False calls=3 111.8s 
+Cell values in the specified range are identical.
+  472-15 facts    correct=True calls=1 13.4s 
+Cell values in the specified range are identical.
+  472-15 retry    correct=True calls=1 10.7s 
+Cell values in the specified range are identical.
+  472-15 noverify correct=True calls=1 13.7s 
+   56920 facts    correct=False calls=1 26.6s 
+   56920 retry    correct=False calls=1 14.6s 
+Cell values in the specified range are identical.
+   56920 noverify correct=True calls=1 47.2s 
+Cell values in the specified range are identical.
+   53647 facts    correct=True calls=1 167.2s 
+   53647 retry    correct=False calls=1 66.7s 
+   53647 noverify correct=False calls=1 91.9s 
+Cell values in the specified range are identical.
+  477-45 facts    correct=True calls=1 62.9s 
+Cell values in the specified range are identical.
+  477-45 retry    correct=True calls=1 47.5s 
+Cell values in the specified range are identical.
+  477-45 noverify correct=True calls=1 45.8s 
+Cell values in the specified range are identical.
+   40892 facts    correct=True calls=1 54.3s 
+   40892 retry    correct=False calls=1 56.3s 
+Cell values in the specified range are identical.
+   40892 noverify correct=True calls=1 36.2s 
+   58147 facts    correct=False calls=1 126.5s 
+Cell values in the specified range are identical.
+   58147 retry    correct=True calls=1 96.3s 
+   58147 noverify correct=False calls=1 68.6s 
+Cell values in the specified range are identical.
+  382-10 facts    correct=True calls=1 10.6s 
+Cell values in the specified range are identical.
+  382-10 retry    correct=True calls=1 7.9s 
+Cell values in the specified range are identical.
+  382-10 noverify correct=True calls=1 10.8s 
+   38074 facts    correct=False calls=1 60.6s 
+   38074 retry    correct=False calls=1 86.8s 
+   38074 noverify correct=False calls=3 327.2s 
+   55977 facts    correct=False calls=1 59.9s 
+   55977 retry    correct=False calls=1 40.5s 
+   55977 noverify correct=False calls=1 55.4s 
+   43657 facts    correct=False calls=1 125.6s 
+Cell values in the specified range are identical.
+   43657 retry    correct=True calls=1 131.2s 
+   43657 noverify correct=False calls=2 327.5s 
+   263-1 facts    correct=False calls=1 83.9s 
+Cell values in the specified range are identical.
+   263-1 retry    correct=True calls=1 23.3s 
+deadline reached, stopping
+{"base": {"n": 100, "correct": 49, "accuracy": 0.49, "calls_per_task": 1.0, "tokens_in": 134182, "tokens_out": 428369}, "harness": {"n": 100, "correct": 64, "accuracy": 0.64, "calls_per_task": 2.64, "tokens_in": 539342, "tokens_out": 1631389}, "facts": {"n": 35, "correct": 17, "accuracy": 0.486, "calls_per_task": 1.0, "tokens_in": 33288, "tokens_out": 208455}, "retry": {"n": 35, "correct": 16, "accuracy": 0.457, "calls_per_task": 1.09, "tokens_in": 26817, "tokens_out": 186713}, "noverify": {"n": 34, "correct": 18, "accuracy": 0.529, "calls_per_task": 1.29, "tokens_in": 53880, "tokens_out": 209053}, "harness_version": "sb-h2", "paired": {"n": 100, "harness_only": 19, "base_only": 4}}
