@@ -1,20 +1,20 @@
 {
  "harness_version": "tau2-h2",
  "base": {
-  "n": 5,
-  "pass": 4,
-  "pass_rate": 0.8,
-  "mean_messages": 64.8
+  "n": 6,
+  "pass": 5,
+  "pass_rate": 0.833,
+  "mean_messages": 65.7
  },
  "harness": {
-  "n": 5,
+  "n": 6,
   "pass": 5,
-  "pass_rate": 1.0,
-  "mean_messages": 66.0
+  "pass_rate": 0.833,
+  "mean_messages": 64.0
  },
  "paired": {
-  "n": 5,
+  "n": 6,
   "harness_only": 1,
-  "base_only": 0
+  "base_only": 1
  }
 }
