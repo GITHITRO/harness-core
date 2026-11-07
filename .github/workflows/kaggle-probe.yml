@@ -1,9 +1,6 @@
 name: kaggle-probe
 on:
-  workflow_dispatch: {}
-  push:
-    branches: [main]
-    paths: [stand/kaggle/probe.py, .github/workflows/kaggle-probe.yml]
+  workflow_dispatch: {}   # manual only
 permissions:
   contents: write
 jobs:
@@ -23,6 +20,9 @@ jobs:
         run: |
           pip install -q kaggle six
           echo "secrets present: username=$([ -n "$KAGGLE_USERNAME" ] && echo y || echo n) key=$([ -n "$KAGGLE_KEY" ] && echo y || echo n) token=$([ -n "$KAGGLE_API_TOKEN" ] && echo y || echo n)" | tee secrets.txt
+          # tolerate a pasted "KAGGLE_API_TOKEN = KGAT_..." line: keep only the token itself
+          KAGGLE_API_TOKEN=$(printf '%s' "$KAGGLE_API_TOKEN" | sed -E 's/^[[:space:]]*KAGGLE_API_TOKEN[[:space:]]*=[[:space:]]*//' | tr -d '[:space:]')
+          echo "::add-mask::$KAGGLE_API_TOKEN"; export KAGGLE_API_TOKEN
           [ -z "$KAGGLE_API_TOKEN" ] && unset KAGGLE_API_TOKEN
           python3 -I stand/kaggle/probe.py
           cat secrets.txt >> probe.md

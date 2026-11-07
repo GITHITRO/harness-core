@@ -1,15 +1,26 @@
 """Probe Kaggle access for the candidate competitions (run in Actions with the Kaggle secret). Writes probe.md."""
 import json
 import os
+import re
 import subprocess
 
 SLUGS = ["playground-series-s6e8", "playground-series-s6e9", "playground-series-s6e10", "playground-series-s6e11",
          "recruitment-task-for-ml-gdg", "squares-in-squares", "kaggriculture"]
 
 
+SECRETS = [v for v in (os.environ.get("KAGGLE_API_TOKEN"), os.environ.get("KAGGLE_KEY")) if v]
+
+
+def redact(text):
+    """Never let a credential reach a log or a published file (an earlier version leaked one via error text)."""
+    for v in SECRETS:
+        text = text.replace(v, "[REDACTED]")
+    return re.sub(r"KGAT_[A-Za-z0-9]+|(bearer|token|key)\s*[=:]?\s*\S{16,}", "[REDACTED]", text, flags=re.I)
+
+
 def sh(cmd, timeout=300):
     p = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
-    return p.returncode, (p.stdout + p.stderr).strip()
+    return p.returncode, redact((p.stdout + p.stderr).strip())
 
 
 def main():
@@ -34,8 +45,10 @@ def main():
                  "e=make('kaggriculture'); print('kaggriculture env ok', e.configuration.get('episodeSteps'))\" 2>&1 | tail -3",
                  timeout=900)
     out += ["", "kaggle-environments / kaggriculture: " + env.replace("\n", " | ")[:400]]
-    open("probe.md", "w").write("\n".join(out) + "\n")
-    print("\n".join(out))
+    text = redact("\n".join(out) + "\n")
+    assert not any(v in text for v in SECRETS)
+    open("probe.md", "w").write(text)
+    print(text)
 
 
 if __name__ == "__main__":
