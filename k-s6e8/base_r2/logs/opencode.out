@@ -1,0 +1,211 @@
+timestamp=2026-11-07T21:25:21.080Z level=ERROR run=995529db message="Failed to fetch models.dev" cause="Cause([Fail(HttpClientError: Transport error (GET https://models.opencode.ai/api.json) (cause: TypeError: getaddrinfo EAI_AGAIN models.opencode.ai))])"
+[0m
+> build · nvidia/nemotron-3.5-super-vl:free
+[0m
+timestamp=2026-11-07T21:25:21.159Z level=WARN run=995529db message="server unavailable" key=arxiv type=remote status=failed
+[0m$ [0mls -la /data /work 2>&1
+/data:
+total 69584
+drwxr-xr-x 2 1001 1001     4096 Nov  7 21:25 .
+drwxr-xr-x 1 root root     4096 Nov  7 21:25 ..
+-rw-r--r-- 1 1001 1001     1369 Nov  7 21:25 TASK.md
+-rw-r--r-- 1 1001 1001      221 Nov  7 21:25 meta.json
+-rw-r--r-- 1 1001 1001  7703870 Nov  7 21:25 sample_submission.csv
+-rw-r--r-- 1 1001 1001 18672999 Nov  7 21:25 test.csv
+-rw-r--r-- 1 1001 1001 44855546 Nov  7 21:25 train.csv
+
+/work:
+total 12
+drwxrwxrwx 2  1001  1001 4096 Nov  7 21:25 .
+drwxr-xr-x 1 root  root  4096 Nov  7 21:25 ..
+-rw-r--r-- 1 agent agent  435 Nov  7 21:25 .run.out
+[0m
+[0m$ [0mhead -5 /data/train.csv && echo "---" && head -5 /data/test.csv && echo "---" && head -5 /data/sample_submission.csv
+id,age,daily_screen_time_hours,social_media_hours,gaming_hours,work_study_hours,sleep_hours,notifications_per_day,app_opens_per_day,weekend_screen_time,gender,stress_level,academic_work_impact,addicted_label
+0,24.0,,1.83,1.59,2.11,7.46,122.0,38.0,8.63,Male,Medium,No,1
+1,19.0,5.97,1.08,,3.03,8.22,76.0,19.0,,Female,Medium,No,0
+2,18.0,5.09,,,,6.25,134.0,60.0,7.47,Female,Low,Yes,0
+3,21.0,6.42,1.26,1.42,3.36,8.85,112.0,94.0,8.66,Other,Low,,1
+---
+id,age,daily_screen_time_hours,social_media_hours,gaming_hours,work_study_hours,sleep_hours,notifications_per_day,app_opens_per_day,weekend_screen_time,gender,stress_level,academic_work_impact
+691369,30.0,9.34,,0.77,4.09,7.15,153.0,16.0,,Other,Medium,Yes
+691370,,,1.91,,1.2,8.67,239.0,148.0,10.68,Female,High,No
+691371,26.0,8.48,3.64,,3.39,7.47,106.0,123.0,,Male,,No
+691372,20.0,8.37,2.99,1.69,2.53,5.45,178.0,55.0,9.88,Male,High,Yes
+---
+id,addicted_label
+691369,0.7094243450313797
+691370,0.7094243450313797
+691371,0.7094243450313797
+691372,0.7094243450313797
+[0m
+[0m→ [0mRead /data/meta.json
+[0m→ [0mRead /data/TASK.md
+[0m
+[0m$ [0mpython -c "
+import pandas as pd
+tr = pd.read_csv('/data/train.csv')
+print(tr.shape)
+print(tr.dtypes)
+print(tr['addicted_label'].value_counts(dropna=False))
+print(tr['addicted_label'].mean())
+print(tr.isna().sum())
+"
+
+(691369, 14)
+id                           int64
+age                        float64
+daily_screen_time_hours    float64
+social_media_hours         float64
+gaming_hours               float64
+work_study_hours           float64
+sleep_hours                float64
+notifications_per_day      float64
+app_opens_per_day          float64
+weekend_screen_time        float64
+gender                      object
+stress_level                object
+academic_work_impact        object
+addicted_label               int64
+dtype: object
+addicted_label
+1    490474
+0    200895
+Name: count, dtype: int64
+0.7094243450313797
+id                              0
+age                         28929
+daily_screen_time_hours     95854
+social_media_hours         133995
+gaming_hours               126821
+work_study_hours            51518
+sleep_hours                 44480
+notifications_per_day       67584
+app_opens_per_day           80710
+weekend_screen_time        112063
+gender                      29034
+stress_level                55148
+academic_work_impact        44224
+addicted_label                  0
+dtype: int64
+[0m
+The sample submission is just the train mean (0.7094) as a placeholder. I'll build a LightGBM model. Let me write a training script.
+[0m← [0mWrite train.py
+Wrote file successfully.
+[0m
+[0m$ [0mpython /work/train.py 2>&1 | tail -25
+Training until validation scores don't improve for 100 rounds
+Did not meet early stopping. Best iteration is:
+[1980]	valid_0's auc: 0.964381
+fold 3 auc 0.96438 best_iter 1980
+Training until validation scores don't improve for 100 rounds
+Did not meet early stopping. Best iteration is:
+[1999]	valid_0's auc: 0.963233
+fold 4 auc 0.96323 best_iter 1999
+OOF AUC 0.9634890284969448
+mean fold auc 0.9634904925770309
+       id  addicted_label
+0  691369        0.999077
+1  691370        0.957219
+2  691371        0.942902
+3  691372        0.984757
+4  691373        0.994158
+count    296302.000000
+mean          0.709515
+std           0.365690
+min           0.000191
+25%           0.392275
+50%           0.941977
+75%           0.999277
+max           1.000000
+Name: addicted_label, dtype: float64
+[0m
+OOF AUC is 0.9635. Let me check the earlier folds (output was truncated) and then do a light optuna tuning to squeeze more.
+[0m$ [0mpython /work/train.py 2>&1 | head -12
+train pos rate 0.7094243450313797 features 21
+Training until validation scores don't improve for 100 rounds
+Did not meet early stopping. Best iteration is:
+[2000]	valid_0's auc: 0.962638
+fold 0 auc 0.96264 best_iter 2000
+Training until validation scores don't improve for 100 rounds
+Did not meet early stopping. Best iteration is:
+[1988]	valid_0's auc: 0.963338
+fold 1 auc 0.96334 best_iter 1988
+Training until validation scores don't improve for 100 rounds
+Did not meet early stopping. Best iteration is:
+[2000]	valid_0's auc: 0.963861
+[0m
+Folds are consistent (~0.9635). Now a quick optuna tuning pass.
+[0m← [0mWrite tune.py
+Wrote file successfully.
+[0m
+[0m$ [0mpython /work/tune.py 2>&1 | tail -20
+[W 2026-11-07 21:38:10,470] Trial 0 failed with value None.
+Traceback (most recent call last):
+  File "/work/tune.py", line 61, in <module>
+    study.optimize(objective, n_trials=12)
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/study.py", line 475, in optimize
+    _optimize(
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 63, in _optimize
+    _optimize_sequential(
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 160, in _optimize_sequential
+    frozen_trial = _run_trial(study, func, catch)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 248, in _run_trial
+    raise func_err
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 197, in _run_trial
+    value_or_values = func(trial)
+                      ^^^^^^^^^^^
+  File "/work/tune.py", line 40, in objective
+    'num_leaves': trial.int('num_leaves', 31, 127),
+                  ^^^^^^^^^
+AttributeError: 'Trial' object has no attribute 'int'
+[0m
+[0m$ [0mpython -c "import optuna; print(optuna.__version__)"
+4.2.1
+[0m
+Optuna methods are `suggest_int`/`suggest_float`. Fixing.
+[0m$ [0mcd /work && sed -i 's/trial\.int(/trial.suggest_int(/g; s/trial\.float(/trial.suggest_float(/g' tune.py && python tune.py 2>&1 | tail -15
+[1053]	valid_0's auc: 0.963417
+Training until validation scores don't improve for 50 rounds
+Early stopping, best iteration is:
+[1187]	valid_0's auc: 0.96329
+Training until validation scores don't improve for 50 rounds
+Early stopping, best iteration is:
+[969]	valid_0's auc: 0.96236
+Training until validation scores don't improve for 50 rounds
+Early stopping, best iteration is:
+[1312]	valid_0's auc: 0.963429
+Training until validation scores don't improve for 50 rounds
+Early stopping, best iteration is:
+[1097]	valid_0's auc: 0.963191
+best value 0.9632193682548157
+{'num_leaves': 64, 'learning_rate': 0.03281827821528128, 'min_child_samples': 112, 'subsample': 0.988754902052751, 'colsample_bytree': 0.625410447091199, 'reg_alpha': 0.0020442547585499894, 'reg_lambda': 1.4653758076865007, 'min_split_gain': 0.0773580455793112, 'bagging_freq': 3}
+[0m
+Tuning didn't beat the baseline (0.9632 vs 0.9635), so I'll keep the baseline submission. Let me verify the final submission format matches the sample exactly.
+[0m$ [0mpython -c "
+import pandas as pd
+sub = pd.read_csv('/work/submission.csv')
+samp = pd.read_csv('/data/sample_submission.csv')
+print(sub.shape, samp.shape)
+print(list(sub.columns) == list(samp.columns))
+print((sub['id'].values == samp['id'].values).all())
+print(sub.dtypes)
+print(sub.head())
+"
+(296302, 2) (296302, 2)
+True
+True
+id                  int64
+addicted_label    float64
+dtype: object
+       id  addicted_label
+0  691369        0.999077
+1  691370        0.957219
+2  691371        0.942902
+3  691372        0.984757
+4  691373        0.994158
+[0m
+Done. `/work/submission.csv` is written with matching ids/columns. 
+
+**Result:** LightGBM classifier with median imputation + missing indicators + label-encoded categoricals achieved OOF ROC AUC ≈ 0.9635 (5 consistent folds: 0.9626–0.9644). Optuna tuning didn't improve on it, so the baseline submission stands.
