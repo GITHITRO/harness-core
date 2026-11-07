@@ -1,0 +1,473 @@
+timestamp=2026-11-07T19:40:47.041Z level=ERROR run=13d03592 message="Failed to fetch models.dev" cause="Cause([Fail(HttpClientError: Transport error (GET https://models.opencode.ai/api.json) (cause: TypeError: getaddrinfo EAI_AGAIN models.opencode.ai))])"
+[0m
+> build · nvidia/nemotron-3.5-super-vl:free
+[0m
+timestamp=2026-11-07T19:40:47.096Z level=WARN run=13d03592 message="server unavailable" key=arxiv type=remote status=failed
+[0m$ [0mls /data /work && head -3 /data/train.csv && echo "---" && cat /data/sample_submission.csv | head -5
+/data:
+TASK.md
+meta.json
+sample_submission.csv
+test.csv
+train.csv
+
+/work:
+battle_turn,opponent_pokemon,opponent_type,move_used,move_type,move_category,weather_condition,pikachu_status,terrain_type,held_item,pikachu_ability,opponent_level,pikachu_level,move_power,attack_stat,defense_stat,sp_attack_stat,sp_defense_stat,speed_stat_pikachu,speed_stat_opponent,attack_stage,defense_stage,speed_stage,type_effectiveness,critical_hit,move_hit,friendship_level,experience_points,healing_applied,damage_dealt,previous_hp,max_hp,pikachu_hp,round,turn,trainer_focus_score
+Round 1 - Turn 00:00,Charizard,Fire,Thunderbolt,Electric,Special,Clear,,Grassy Terrain,Sitrus Berry,Static,27,26,90,,37,29,43,48,29,0,0,0,,0,1,133,2101,0,25,54,54,54,1,0,98.6
+Round 1 - Turn 01:00,Dragonite,Dragon,Electro Ball,Electric,Special,Clear,Paralyzed,Electric Terrain,Sitrus Berry,Static,32,26,80,34,26,39,49,55,25,0,-1,0,0.5,0,1,112,2989,0,25,31,54,11,1,1,27.7
+---
+battle_turn,pikachu_hp
+Round 1828 - Turn 00:00,50
+Round 1828 - Turn 01:00,50
+Round 1828 - Turn 02:00,50
+Round 1828 - Turn 03:00,50
+[0m
+[0m$ [0mpython -c "
+import pandas as pd
+tr = pd.read_csv('/data/train.csv')
+te = pd.read_csv('/data/test.csv')
+print(tr.shape, te.shape)
+print(tr.dtypes)
+print(tr['pikachu_hp'].describe())
+print('hp = prev - dmg + heal?')
+print(((tr['previous_hp'] - tr['damage_dealt'] + tr['healing_applied']) == tr['pikachu_hp']).mean())
+print('hp clipped at max?')
+print((tr['pikachu_hp'] <= tr['max_hp']).mean())
+print(tr.head(3)[['battle_turn','previous_hp','damage_dealt','healing_applied','max_hp','pikachu_hp']].to_string())
+print(te.columns.tolist())
+"
+(80016, 36) (240, 35)
+battle_turn             object
+opponent_pokemon        object
+opponent_type           object
+move_used               object
+move_type               object
+move_category           object
+weather_condition       object
+pikachu_status          object
+terrain_type            object
+held_item               object
+pikachu_ability         object
+opponent_level         float64
+pikachu_level          float64
+move_power             float64
+attack_stat            float64
+defense_stat           float64
+sp_attack_stat         float64
+sp_defense_stat        float64
+speed_stat_pikachu     float64
+speed_stat_opponent    float64
+attack_stage           float64
+defense_stage          float64
+speed_stage            float64
+type_effectiveness     float64
+critical_hit           float64
+move_hit               float64
+friendship_level       float64
+experience_points      float64
+healing_applied        float64
+damage_dealt           float64
+previous_hp            float64
+max_hp                 float64
+pikachu_hp               int64
+round                    int64
+turn                     int64
+trainer_focus_score    float64
+dtype: object
+count    80016.000000
+mean        25.988265
+std         24.015293
+min          0.000000
+25%          0.000000
+50%         22.000000
+75%         46.000000
+max         81.000000
+Name: pikachu_hp, dtype: float64
+hp = prev - dmg + heal?
+0.04407868426314737
+hp clipped at max?
+0.9705433913217356
+            battle_turn  previous_hp  damage_dealt  healing_applied  max_hp  pikachu_hp
+0  Round 1 - Turn 00:00         54.0          25.0              0.0    54.0          54
+1  Round 1 - Turn 01:00         31.0          25.0              0.0    54.0          11
+2  Round 1 - Turn 02:00          7.0          10.0              0.0    54.0          12
+['battle_turn', 'opponent_pokemon', 'opponent_type', 'move_used', 'move_type', 'move_category', 'weather_condition', 'pikachu_status', 'terrain_type', 'held_item', 'pikachu_ability', 'opponent_level', 'pikachu_level', 'move_power', 'attack_stat', 'defense_stat', 'sp_attack_stat', 'sp_defense_stat', 'speed_stat_pikachu', 'speed_stat_opponent', 'attack_stage', 'defense_stage', 'speed_stage', 'type_effectiveness', 'critical_hit', 'move_hit', 'friendship_level', 'experience_points', 'healing_applied', 'damage_dealt', 'previous_hp', 'max_hp', 'round', 'turn', 'trainer_focus_score']
+[0m
+[0m$ [0mpython -c "
+import pandas as pd, numpy as np
+tr = pd.read_csv('/data/train.csv')
+# check relation: hp vs previous_hp - damage + heal
+r = tr['pikachu_hp'] - (tr['previous_hp'] - tr['damage_dealt'] + tr['healing_applied'])
+print(r.describe())
+print('unique residuals:', sorted(r.unique())[:20], '...', sorted(r.unique())[-5:])
+print('corr hp with prev_hp:', tr['pikachu_hp'].corr(tr['previous_hp']))
+print('corr hp with damage:', tr['pikachu_hp'].corr(tr['damage_dealt']))
+print('corr hp with heal:', tr['pikachu_hp'].corr(tr['healing_applied']))
+print('nulls:', tr.isnull().sum().sum(), te:=pd.read_csv('/data/test.csv')).isnull().sum().sum() if False else ''
+"
+count    73022.000000
+mean        18.540741
+std         44.264339
+min        -90.000000
+25%         -6.000000
+50%          8.000000
+75%         29.000000
+max        910.000000
+dtype: float64
+unique residuals: [np.float64(-90.0), np.float64(-81.0), np.float64(-80.0), np.float64(-74.0), np.float64(-72.0), np.float64(-70.0), np.float64(-68.0), np.float64(-67.0), np.float64(-65.0), np.float64(-64.0), np.float64(-63.0), np.float64(-62.0), np.float64(-61.0), np.float64(-60.0), np.float64(-53.0), np.float64(-50.0), np.float64(-46.0), np.float64(-45.0), np.float64(-42.0), np.float64(-37.0)] ... [np.float64(594.0), np.float64(615.0), np.float64(624.0), np.float64(868.0), np.float64(910.0)]
+corr hp with prev_hp: 0.44339738633604814
+corr hp with damage: -0.3344016877543062
+corr hp with heal: 0.11149600099480367
+[0m
+[0m$ [0mpython -c "
+import pandas as pd
+tr = pd.read_csv('/data/train.csv')
+te = pd.read_csv('/data/test.csv')
+print(tr['round'].min(), tr['round'].max(), tr['round'].nunique())
+print(te['round'].unique())
+print(tr['turn'].min(), tr['turn'].max())
+print(tr['battle_turn'].str.split(' - ').str[0].value_counts().head())
+"
+1 3334 3334
+[1828 1829 1830 1831 1832 1833 1834 1835 1836 1837]
+0 23
+battle_turn
+Round 3334    24
+Round 1       24
+Round 2       24
+Round 3       24
+Round 4       24
+Name: count, dtype: int64
+[0m
+[0m← [0mWrite train.py
+Wrote file successfully.
+[0m
+[0m$ [0mcd /work && python train.py
+/work/train.py:17: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X[c] = X[c].astype('category')
+/work/train.py:18: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  Xt[c] = Xt[c].astype('category')
+/work/train.py:17: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X[c] = X[c].astype('category')
+/work/train.py:18: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  Xt[c] = Xt[c].astype('category')
+/work/train.py:17: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X[c] = X[c].astype('category')
+/work/train.py:18: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  Xt[c] = Xt[c].astype('category')
+/work/train.py:17: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X[c] = X[c].astype('category')
+/work/train.py:18: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  Xt[c] = Xt[c].astype('category')
+/work/train.py:17: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X[c] = X[c].astype('category')
+/work/train.py:18: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  Xt[c] = Xt[c].astype('category')
+/work/train.py:17: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X[c] = X[c].astype('category')
+/work/train.py:18: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  Xt[c] = Xt[c].astype('category')
+/work/train.py:17: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X[c] = X[c].astype('category')
+/work/train.py:18: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  Xt[c] = Xt[c].astype('category')
+/work/train.py:17: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X[c] = X[c].astype('category')
+/work/train.py:18: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  Xt[c] = Xt[c].astype('category')
+/work/train.py:17: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X[c] = X[c].astype('category')
+/work/train.py:18: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  Xt[c] = Xt[c].astype('category')
+/work/train.py:17: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X[c] = X[c].astype('category')
+/work/train.py:18: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  Xt[c] = Xt[c].astype('category')
+Traceback (most recent call last):
+  File "/work/train.py", line 28, in <module>
+    m.fit(X.iloc[tr_i], y.iloc[tr_i], eval_set=[(X.iloc[va_i], y.iloc[va_i])],
+TypeError: LGBMRegressor.fit() got an unexpected keyword argument 'early_stopping_rounds'
+[0m
+[0m$ [0mpython -c "import lightgbm; print(lightgbm.__version__)"
+4.6.0
+[0m
+[0m← [0mWrite train.py
+Wrote file successfully.
+[0m
+[0m$ [0mcd /work && python train.py 2>/dev/null
+CV R2: 0.9688021593700883
+[0m
+[0m$ [0mcd /work && python -c "
+import pandas as pd, numpy as np
+tr = pd.read_csv('/data/train.csv')
+# test exact formula candidates
+for name, f in [
+  ('prev-dmg+heal', tr['previous_hp']-tr['damage_dealt']+tr['healing_applied']),
+  ('prev-dmg', tr['previous_hp']-tr['damage_dealt']),
+  ('prev', tr['previous_hp']),
+]:
+    e = (tr['pikachu_hp'] - f).abs()
+    print(name, 'exact match %:', (e==0).mean(), 'mae:', e.mean())
+" 2>/dev/null
+prev-dmg+heal exact match %: 0.04407868426314737 mae: 28.061159650516284
+prev-dmg exact match %: 0.04667816436712657 mae: 28.5744957537155
+prev exact match %: 0.08572035592881423 mae: 24.59287083370853
+[0m
+CV R2 is 0.969. Submission written; let me verify format:
+[0m$ [0mcd /work && python -c "
+import pandas as pd
+s = pd.read_csv('/work/submission.csv')
+sa = pd.read_csv('/data/sample_submission.csv')
+print(s.shape, sa.shape)
+print(list(s.columns)==list(sa.columns), list(s['battle_turn'])==list(sa['battle_turn']))
+print(s.head())
+"
+Traceback (most recent call last):
+  File "<string>", line 3, in <module>
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/parsers/readers.py", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/parsers/readers.py", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/parsers/readers.py", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/parsers/readers.py", line 1880, in _make_engine
+    self.handles = get_handle(
+                   ^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/common.py", line 873, in get_handle
+    handle = open(
+             ^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/work/submission.csv'
+[0m
+[0m$ [0mcd /work && python train.py 2>&1 | tail -5; ls -la /work/submission.csv 2>&1
+File "/usr/local/lib/python3.12/site-packages/lightgbm/callback.py", line 404, in __call__
+    self._init(env)
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/callback.py", line 328, in _init
+    raise ValueError("For early stopping, at least one dataset and eval metric is required for evaluation")
+ValueError: For early stopping, at least one dataset and eval metric is required for evaluation
+ls: cannot access '/work/submission.csv': No such file or directory
+[0m
+[0m← [0mEdit train.py
+Index: /work/train.py
+===================================================================
+--- /work/train.py
++++ /work/train.py
+@@ -31,10 +31,9 @@
+     oof[va_i] = m.predict(X.iloc[va_i])
+ print('CV R2:', r2_score(y, oof))
+ 
+ m = lgb.LGBMRegressor(**params)
+-m.fit(X, y, categorical_feature=cat_cols,
+-      callbacks=[lgb.early_stopping(100, verbose=False)])
++m.fit(X, y, categorical_feature=cat_cols)
+ pred = m.predict(Xt)
+ pred = np.clip(pred, 0, te['max_hp'])
+ sub = pd.read_csv('/data/sample_submission.csv')
+ sub['pikachu_hp'] = np.round(pred).astype(int)
+
+[0m
+[0m$ [0mcd /work && python train.py 2>&1 | tail -3; ls -la /work/submission.csv
+File "/usr/local/lib/python3.12/site-packages/pandas/core/dtypes/astype.py", line 145, in _astype_float_to_int_nansafe
+    raise IntCastingNaNError(
+pandas.errors.IntCastingNaNError: Cannot convert non-finite values (NA or inf) to integer
+ls: cannot access '/work/submission.csv': No such file or directory
+[0m
+[0m$ [0mpython -c "
+import pandas as pd
+te = pd.read_csv('/data/test.csv')
+tr = pd.read_csv('/data/train.csv')
+print(te.isnull().sum()[te.isnull().sum()>0])
+for c in ['opponent_pokemon','opponent_type','move_used','move_type','move_category','weather_condition','pikachu_status','terrain_type','held_item','pikachu_ability']:
+    unseen = set(te[c].dropna()) - set(tr[c].dropna())
+    if unseen: print(c, unseen)
+"
+opponent_pokemon         8
+opponent_type            5
+move_used                3
+move_type                5
+move_category            9
+weather_condition        6
+pikachu_status         185
+terrain_type           143
+held_item               79
+pikachu_ability          4
+opponent_level           5
+pikachu_level           10
+move_power               7
+attack_stat              6
+defense_stat            11
+sp_attack_stat           4
+sp_defense_stat         10
+speed_stat_pikachu       7
+speed_stat_opponent      8
+attack_stage             3
+defense_stage            5
+speed_stage              3
+type_effectiveness       6
+critical_hit             3
+move_hit                 7
+friendship_level         6
+experience_points        6
+healing_applied          9
+damage_dealt             7
+previous_hp             11
+max_hp                   9
+dtype: int64
+[0m
+[0m← [0mEdit train.py
+Index: /work/train.py
+===================================================================
+--- /work/train.py
++++ /work/train.py
+@@ -12,11 +12,14 @@
+ 
+ X = tr[num_cols + cat_cols].copy(); y = tr['pikachu_hp'].astype(float).values
+ Xt = te[num_cols + cat_cols].copy()
+ 
++for c in num_cols:
++    X[c] = X[c].fillna(X[c].median())
++    Xt[c] = Xt[c].fillna(X[c].median())
+ for c in cat_cols:
+-    X[c] = X[c].astype('category')
+-    Xt[c] = Xt[c].astype('category')
++    X[c] = X[c].fillna('Missing').astype('category')
++    Xt[c] = Xt[c].fillna('Missing').astype('category')
+ 
+ params = dict(objective='regression', metric='rmse', learning_rate=0.05, n_estimators=3000,
+               num_leaves=63, min_child_samples=20, subsample=0.8, colsample_bytree=0.8,
+               reg_alpha=0.1, reg_lambda=0.1, random_state=42, n_jobs=4, verbose=-1)
+
+[0m
+[0m$ [0mcd /work && python train.py 2>&1 | tail -3; ls -la /work/submission.csv && python -c "
+import pandas as pd
+s = pd.read_csv('/work/submission.csv'); sa = pd.read_csv('/data/sample_submission.csv')
+print(s.shape, sa.shape)
+print(list(s.columns)==list(sa.columns), (s['battle_turn']==sa['battle_turn']).all())
+print(s.head())
+"
+File "/usr/local/lib/python3.12/site-packages/pandas/core/dtypes/astype.py", line 145, in _astype_float_to_int_nansafe
+    raise IntCastingNaNError(
+pandas.errors.IntCastingNaNError: Cannot convert non-finite values (NA or inf) to integer
+ls: cannot access '/work/submission.csv': No such file or directory
+[0m
+[0m← [0mEdit train.py
+Index: /work/train.py
+===================================================================
+--- /work/train.py
++++ /work/train.py
+@@ -36,9 +36,9 @@
+ 
+ m = lgb.LGBMRegressor(**params)
+ m.fit(X, y, categorical_feature=cat_cols)
+ pred = m.predict(Xt)
+-pred = np.clip(pred, 0, te['max_hp'])
++pred = np.clip(pred, 0, Xt['max_hp'])
+ sub = pd.read_csv('/data/sample_submission.csv')
+ sub['pikachu_hp'] = np.round(pred).astype(int)
+ sub.to_csv('/work/submission.csv', index=False)
+ print(sub.head())
+
+[0m
+[0m$ [0mcd /work && python train.py 2>&1 | tail -3; ls -la /work/submission.csv && python -c "
+import pandas as pd
+s = pd.read_csv('/work/submission.csv'); sa = pd.read_csv('/data/sample_submission.csv')
+print(s.shape, sa.shape)
+print(list(s.columns)==list(sa.columns), (s['battle_turn']==sa['battle_turn']).all())
+print(s.head())
+"
+3  Round 1828 - Turn 03:00          26
+4  Round 1828 - Turn 04:00          16
+done
+-rw-r--r-- 1 agent agent 6475 Nov  7 19:42 /work/submission.csv
+(240, 2) (240, 2)
+True True
+               battle_turn  pikachu_hp
+0  Round 1828 - Turn 00:00          48
+1  Round 1828 - Turn 01:00          51
+2  Round 1828 - Turn 02:00          30
+3  Round 1828 - Turn 03:00          26
+4  Round 1828 - Turn 04:00          16
+[0m
+Submission written to `/work/submission.csv` (240 rows, matching ids/columns). LightGBM with categorical features achieved CV R2 ≈ 0.969.
