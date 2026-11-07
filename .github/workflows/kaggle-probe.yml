@@ -20,10 +20,18 @@ jobs:
         run: |
           pip install -q kaggle six
           echo "secrets present: username=$([ -n "$KAGGLE_USERNAME" ] && echo y || echo n) key=$([ -n "$KAGGLE_KEY" ] && echo y || echo n) token=$([ -n "$KAGGLE_API_TOKEN" ] && echo y || echo n)" | tee secrets.txt
-          # tolerate a pasted "KAGGLE_API_TOKEN = KGAT_..." line: keep only the token itself
-          KAGGLE_API_TOKEN=$(printf '%s' "$KAGGLE_API_TOKEN" | sed -E 's/^[[:space:]]*KAGGLE_API_TOKEN[[:space:]]*=[[:space:]]*//' | tr -d '[:space:]')
-          echo "::add-mask::$KAGGLE_API_TOKEN"; export KAGGLE_API_TOKEN
-          [ -z "$KAGGLE_API_TOKEN" ] && unset KAGGLE_API_TOKEN
+          # Accept any pasted form without printing it: kaggle.json content, "KAGGLE_API_TOKEN = ...", or the bare token.
+          mkdir -p ~/.kaggle && chmod 700 ~/.kaggle
+          RAW="$KAGGLE_API_TOKEN"; unset KAGGLE_API_TOKEN
+          if [ -n "$KAGGLE_USERNAME" ] && [ -n "$KAGGLE_KEY" ]; then FMT=username+key
+          elif printf '%s' "$RAW" | grep -q '"key"'; then
+            printf '%s' "$RAW" > ~/.kaggle/kaggle.json; chmod 600 ~/.kaggle/kaggle.json; FMT=kaggle.json
+          elif [ -n "$RAW" ]; then
+            TOK=$(printf '%s' "$RAW" | sed -E 's/^[[:space:]]*KAGGLE_API_TOKEN[[:space:]]*=[[:space:]]*//' | tr -d '[:space:]"')
+            echo "::add-mask::$TOK"; printf '%s' "$TOK" > ~/.kaggle/access_token; chmod 600 ~/.kaggle/access_token
+            export KAGGLE_API_TOKEN="$TOK"; FMT="token(len=${#TOK},prefix=${TOK:0:5})"
+          else FMT=none; fi
+          echo "credential format: $FMT" | tee -a secrets.txt
           python3 -I stand/kaggle/probe.py
           cat secrets.txt >> probe.md
       - name: Publish
