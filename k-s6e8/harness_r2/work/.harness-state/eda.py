@@ -1,0 +1,33 @@
+import pandas as pd
+import numpy as np
+
+train = pd.read_csv("/data/train.csv")
+test = pd.read_csv("/data/test.csv")
+sub = pd.read_csv("/data/sample_submission.csv")
+
+print("train shape:", train.shape)
+print("test shape:", test.shape)
+print("sub shape:", sub.shape)
+print("\n--- train dtypes ---")
+print(train.dtypes)
+print("\n--- missingness train ---")
+print(train.isna().sum())
+print("\n--- missingness test ---")
+print(test.isna().sum())
+print("\n--- target distribution ---")
+print(train["addicted_label"].value_counts(dropna=False))
+print("target mean:", train["addicted_label"].mean())
+print("\n--- numeric describe ---")
+print(train.describe())
+print("\n--- categorical values ---")
+for c in ["gender", "stress_level", "academic_work_impact"]:
+    print(c, train[c].value_counts(dropna=False).to_dict())
+    print("  test:", test[c].value_counts(dropna=False).to_dict())
+print("\n--- id checks ---")
+print("train id unique:", train["id"].is_unique, "range:", train["id"].min(), train["id"].max())
+print("test id unique:", test["id"].is_unique, "range:", test["id"].min(), test["id"].max())
+print("sub id unique:", sub["id"].is_unique, "range:", sub["id"].min(), sub["id"].max())
+print("test ids == sub ids (order):", (test["id"].values == sub["id"].values).all())
+print("sub label range:", sub["addicted_label"].min(), sub["addicted_label"].max())
+print("sub label dtype:", sub["addicted_label"].dtype)
+print("sub unique labels sample:", sorted(sub["addicted_label"].unique())[:10], "... n_unique:", sub["addicted_label"].nunique())

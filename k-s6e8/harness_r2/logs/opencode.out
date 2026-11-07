@@ -1,0 +1,559 @@
+timestamp=2026-11-07T22:24:42.622Z level=ERROR run=a0e9d204 message="failed to load plugin" path=file:///work/.opencode/plugins/harness-core.js error="EACCES: permission denied, mkdir '/.harness'"
+timestamp=2026-11-07T22:24:43.366Z level=ERROR run=a0e9d204 message="Failed to fetch models.dev" cause="Cause([Fail(HttpClientError: Transport error (GET https://models.opencode.ai/api.json) (cause: TypeError: getaddrinfo EAI_AGAIN models.opencode.ai))])"
+[0m
+> core · nvidia/nemotron-3.5-super-vl:free
+[0m
+timestamp=2026-11-07T22:24:43.440Z level=WARN run=a0e9d204 message="server unavailable" key=arxiv type=remote status=failed
+[0m$ [0mmkdir -p /work/.harness
+(no output)
+[0m
+[0m$ [0mls -la /data && ls -la /work && python -c "import pandas, numpy, sklearn, lightgbm, xgboost, catboost, optuna; print('libs ok')"
+total 69584
+drwxr-xr-x 2 1001 1001     4096 Nov  7 22:24 .
+drwxr-xr-x 1 root root     4096 Nov  7 22:24 ..
+-rw-r--r-- 1 1001 1001     1369 Nov  7 22:24 TASK.md
+-rw-r--r-- 1 1001 1001      221 Nov  7 22:24 meta.json
+-rw-r--r-- 1 1001 1001  7703870 Nov  7 22:24 sample_submission.csv
+-rw-r--r-- 1 1001 1001 18672999 Nov  7 22:24 test.csv
+-rw-r--r-- 1 1001 1001 44855546 Nov  7 22:24 train.csv
+total 20
+drwxrwxrwx 4  1001  1001 4096 Nov  7 22:24 .
+drwxr-xr-x 1 root  root  4096 Nov  7 22:24 ..
+drwxr-xr-x 2  1001  1001 4096 Nov  7 22:24 .harness
+drwxr-xr-x 6  1001  1001 4096 Nov  7 22:24 .opencode
+-rw-r--r-- 1 agent agent  631 Nov  7 22:24 .run.out
+libs ok
+[0m
+[0m→ [0mRead /data/TASK.md
+[0m
+[0m$ [0mhead -3 /data/train.csv && echo "---" && head -3 /data/test.csv && echo "---" && head -3 /data/sample_submission.csv && wc -l /data/train.csv /data/test.csv /data/sample_submission.csv
+id,age,daily_screen_time_hours,social_media_hours,gaming_hours,work_study_hours,sleep_hours,notifications_per_day,app_opens_per_day,weekend_screen_time,gender,stress_level,academic_work_impact,addicted_label
+0,24.0,,1.83,1.59,2.11,7.46,122.0,38.0,8.63,Male,Medium,No,1
+1,19.0,5.97,1.08,,3.03,8.22,76.0,19.0,,Female,Medium,No,0
+---
+id,age,daily_screen_time_hours,social_media_hours,gaming_hours,work_study_hours,sleep_hours,notifications_per_day,app_opens_per_day,weekend_screen_time,gender,stress_level,academic_work_impact
+691369,30.0,9.34,,0.77,4.09,7.15,153.0,16.0,,Other,Medium,Yes
+691370,,,1.91,,1.2,8.67,239.0,148.0,10.68,Female,High,No
+---
+id,addicted_label
+691369,0.7094243450313797
+691370,0.7094243450313797
+  691370 /data/train.csv
+  296303 /data/test.csv
+  296303 /data/sample_submission.csv
+ 1283976 total
+[0m
+[0m→ [0mRead /data/meta.json
+[0m
+[0m# [0mTodos
+[•] EDA: shapes, dtypes, missingness, target distribution
+[ ] Baseline LightGBM + 5-fold stratified CV ROC AUC
+[ ] Optuna tuning + feature engineering (time-boxed)
+[ ] Final train on full data, predict test, write /work/submission.csv
+[ ] Verify format (ids, columns, [0,1] range) and evidence log
+[ ] AAR
+[0m
+Now let me set up the intent file and start EDA.
+[0m✗ [0mWrite .harness/intent.md failed
+[91m[1mError: [0mPermissionDenied: FileSystem.writeFile (/work/.harness/intent.md)
+[0m
+[0m$ [0mwhoami; id; ls -la /work/.harness/; touch /work/.harness/test.txt 2>&1; ls -la /work/
+agent
+uid=1000(agent) gid=1000(agent) groups=1000(agent)
+total 12
+drwxr-xr-x 2 1001 1001 4096 Nov  7 22:24 .
+drwxrwxrwx 4 1001 1001 4096 Nov  7 22:24 ..
+-rw-r--r-- 1 1001 1001    0 Nov  7 22:24 approved-commands.txt
+-rw-r--r-- 1 1001 1001   35 Nov  7 22:24 config.json
+touch: cannot touch '/work/.harness/test.txt': Permission denied
+total 20
+drwxrwxrwx 4  1001  1001 4096 Nov  7 22:24 .
+drwxr-xr-x 1 root  root  4096 Nov  7 22:24 ..
+drwxr-xr-x 2  1001  1001 4096 Nov  7 22:24 .harness
+drwxr-xr-x 6  1001  1001 4096 Nov  7 22:24 .opencode
+-rw-r--r-- 1 agent agent 3082 Nov  7 22:24 .run.out
+[0m
+[0m$ [0mls -la /work/.opencode/ 2>/dev/null; cat /work/.run.out
+total 28
+drwxr-xr-x 6 1001 1001 4096 Nov  7 22:24 .
+drwxrwxrwx 4 1001 1001 4096 Nov  7 22:24 ..
+-rw-r--r-- 1 1001 1001  331 Nov  7 22:24 .harness-core.manifest
+drwxr-xr-x 2 1001 1001 4096 Nov  7 22:24 agents
+drwxr-xr-x 2 1001 1001 4096 Nov  7 22:24 commands
+drwxr-xr-x 2 1001 1001 4096 Nov  7 22:24 plugins
+drwxr-xr-x 7 1001 1001 4096 Nov  7 22:24 skills
+timestamp=2026-11-07T22:24:42.622Z level=ERROR run=a0e9d204 message="failed to load plugin" path=file:///work/.opencode/plugins/harness-core.js error="EACCES: permission denied, mkdir '/.harness'"
+timestamp=2026-11-07T22:24:43.366Z level=ERROR run=a0e9d204 message="Failed to fetch models.dev" cause="Cause([Fail(HttpClientError: Transport error (GET https://models.opencode.ai/api.json) (cause: TypeError: getaddrinfo EAI_AGAIN models.opencode.ai))])"
+[0m
+> core · nvidia/nemotron-3.5-super-vl:free
+[0m
+timestamp=2026-11-07T22:24:43.440Z level=WARN run=a0e9d204 message="server unavailable" key=arxiv type=remote status=failed
+[0m$ [0mmkdir -p /work/.harness
+(no output)
+[0m
+[0m$ [0mls -la /data && ls -la /work && python -c "import pandas, numpy, sklearn, lightgbm, xgboost, catboost, optuna; print('libs ok')"
+total 69584
+drwxr-xr-x 2 1001 1001     4096 Nov  7 22:24 .
+drwxr-xr-x 1 root root     4096 Nov  7 22:24 ..
+-rw-r--r-- 1 1001 1001     1369 Nov  7 22:24 TASK.md
+-rw-r--r-- 1 1001 1001      221 Nov  7 22:24 meta.json
+-rw-r--r-- 1 1001 1001  7703870 Nov  7 22:24 sample_submission.csv
+-rw-r--r-- 1 1001 1001 18672999 Nov  7 22:24 test.csv
+-rw-r--r-- 1 1001 1001 44855546 Nov  7 22:24 train.csv
+total 20
+drwxrwxrwx 4  1001  1001 4096 Nov  7 22:24 .
+drwxr-xr-x 1 root  root  4096 Nov  7 22:24 ..
+drwxr-xr-x 2  1001  1001 4096 Nov  7 22:24 .harness
+drwxr-xr-x 6  1001  1001 4096 Nov  7 22:24 .opencode
+-rw-r--r-- 1 agent agent  631 Nov  7 22:24 .run.out
+libs ok
+[0m
+[0m→ [0mRead /data/TASK.md
+[0m
+[0m$ [0mhead -3 /data/train.csv && echo "---" && head -3 /data/test.csv && echo "---" && head -3 /data/sample_submission.csv && wc -l /data/train.csv /data/test.csv /data/sample_submission.csv
+id,age,daily_screen_time_hours,social_media_hours,gaming_hours,work_study_hours,sleep_hours,notifications_per_day,app_opens_per_day,weekend_screen_time,gender,stress_level,academic_work_impact,addicted_label
+0,24.0,,1.83,1.59,2.11,7.46,122.0,38.0,8.63,Male,Medium,No,1
+1,19.0,5.97,1.08,,3.03,8.22,76.0,19.0,,Female,Medium,No,0
+---
+id,age,daily_screen_time_hours,social_media_hours,gaming_hours,work_study_hours,sleep_hours,notifications_per_day,app_opens_per_day,weekend_screen_time,gender,stress_level,academic_work_impact
+691369,30.0,9.34,,0.77,4.09,7.15,153.0,16.0,,Other,Medium,Yes
+691370,,,1.91,,1.2,8.67,239.0,148.0,10.68,Female,High,No
+---
+id,addicted_label
+691369,0.7094243450313797
+691370,0.7094243450313797
+  691370 /data/train.csv
+  296303 /data/test.csv
+  296303 /data/sample_submission.csv
+ 1283976 total
+[0m
+[0m→ [0mRead /data/meta.json
+[0m
+[0m# [0mTodos
+[•] EDA: shapes, dtypes, missingness, target distribution
+[ ] Baseline LightGBM + 5-fold stratified CV ROC AUC
+[ ] Optuna tuning + feature engineering (time-boxed)
+[ ] Final train on full data, predict test, write /work/submission.csv
+[ ] Verify format (ids, columns, [0,1] range) and evidence log
+[ ] AAR
+[0m
+Now let me set up the intent file and start EDA.
+[0m✗ [0mWrite .harness/intent.md failed
+[91m[1mError: [0mPermissionDenied: FileSystem.writeFile (/work/.harness/intent.md)
+[0m
+[0m$ [0mwhoami; id; ls -la /work/.harness/; touch /work/.harness/test.txt 2>&1; ls -la /work/
+agent
+uid=1000(agent) gid=1000(agent) groups=1000(agent)
+total 12
+drwxr-xr-x 2 1001 1001 4096 Nov  7 22:24 .
+drwxrwxrwx 4 1001 1001 4096 Nov  7 22:24 ..
+-rw-r--r-- 1 1001 1001    0 Nov  7 22:24 approved-commands.txt
+-rw-r--r-- 1 1001 1001   35 Nov  7 22:24 config.json
+touch: cannot touch '/work/.harness/test.txt': Permission denied
+total 20
+drwxrwxrwx 4  1001  1001 4096 Nov  7 22:24 .
+drwxr-xr-x 1 root  root  4096 Nov  7 22:24 ..
+drwxr-xr-x 2  1001  1001 4096 Nov  7 22:24 .harness
+drwxr-xr-x 6  1001  1001 4096 Nov  7 22:24 .opencode
+-rw-r--r-- 1 agent agent 3082 Nov  7 22:24 .run.out
+[0m
+[0m
+[0m→ [0mRead .harness/config.json
+[0m
+[0m← [0mWrite .harness-state/intent.md
+Wrote file successfully.
+[0m
+[0m$ [0mmkdir -p /work/.harness-state && ls -la /work/.harness-state
+total 12
+drwxr-xr-x 2 agent agent 4096 Nov  7 22:25 .
+drwxrwxrwx 5  1001  1001 4096 Nov  7 22:25 ..
+-rw-r--r-- 1 agent agent 1502 Nov  7 22:25 intent.md
+[0m
+[0m← [0mWrite .harness-state/eda.py
+Wrote file successfully.
+[0m
+[0m$ [0mpython /work/.harness-state/eda.py
+train shape: (691369, 14)
+test shape: (296302, 13)
+sub shape: (296302, 2)
+
+--- train dtypes ---
+id                           int64
+age                        float64
+daily_screen_time_hours    float64
+social_media_hours         float64
+gaming_hours               float64
+work_study_hours           float64
+sleep_hours                float64
+notifications_per_day      float64
+app_opens_per_day          float64
+weekend_screen_time        float64
+gender                      object
+stress_level                object
+academic_work_impact        object
+addicted_label               int64
+dtype: object
+
+--- missingness train ---
+id                              0
+age                         28929
+daily_screen_time_hours     95854
+social_media_hours         133995
+gaming_hours               126821
+work_study_hours            51518
+sleep_hours                 44480
+notifications_per_day       67584
+app_opens_per_day           80710
+weekend_screen_time        112063
+gender                      29034
+stress_level                55148
+academic_work_impact        44224
+addicted_label                  0
+dtype: int64
+
+--- missingness test ---
+id                             0
+age                        17138
+daily_screen_time_hours    32788
+social_media_hours         47397
+gaming_hours               59420
+work_study_hours           27777
+sleep_hours                22455
+notifications_per_day      34221
+app_opens_per_day          25705
+weekend_screen_time        50697
+gender                     14212
+stress_level               19626
+academic_work_impact       25721
+dtype: int64
+
+--- target distribution ---
+addicted_label
+1    490474
+0    200895
+Name: count, dtype: int64
+target mean: 0.7094243450313797
+
+--- numeric describe ---
+                  id            age  ...  weekend_screen_time  addicted_label
+count  691369.000000  662440.000000  ...        579306.000000   691369.000000
+mean   345684.000000      26.615408  ...             9.479866        0.709424
+std    199581.183467       5.153162  ...             2.856006        0.454028
+min         0.000000      18.000000  ...             0.510000        0.000000
+25%    172842.000000      22.000000  ...             7.280000        0.000000
+50%    345684.000000      27.000000  ...             9.580000        1.000000
+75%    518526.000000      31.000000  ...            11.750000        1.000000
+max    691368.000000      35.000000  ...            17.560000        1.000000
+
+[8 rows x 11 columns]
+
+--- categorical values ---
+gender {'Male': 223662, 'Female': 221595, 'Other': 217078, nan: 29034}
+  test: {'Male': 95357, 'Female': 94295, 'Other': 92438, nan: 14212}
+stress_level {'High': 220873, 'Low': 207783, 'Medium': 207565, nan: 55148}
+  test: {'High': 95622, 'Low': 90746, 'Medium': 90308, nan: 19626}
+academic_work_impact {'Yes': 330566, 'No': 316579, nan: 44224}
+  test: {'Yes': 138694, 'No': 131887, nan: 25721}
+
+--- id checks ---
+train id unique: True range: 0 691368
+test id unique: True range: 691369 987670
+sub id unique: True range: 691369 987670
+test ids == sub ids (order): True
+sub label range: 0.7094243450313797 0.7094243450313797
+sub label dtype: float64
+sub unique labels sample: [np.float64(0.7094243450313797)] ... n_unique: 1
+[0m
+[0m# [0mTodos
+[✓] EDA: shapes, dtypes, missingness, target distribution
+[•] Baseline LightGBM + 5-fold stratified CV ROC AUC
+[ ] Optuna tuning + feature engineering (time-boxed)
+[ ] Final train on full data, predict test, write /work/submission.csv
+[ ] Verify format (ids, columns, [0,1] range) and evidence log
+[ ] AAR
+[0m
+EDA complete. Key facts: binary target (70.9% positive), heavy missingness (up to ~19% in screen-time cols), test ids match sample_submission exactly in order, and sample_submission is a constant train-mean baseline (0.7094…). Recording facts and starting the baseline.
+[0m← [0mWrite .harness-state/world.md
+Wrote file successfully.
+[0m
+[0m← [0mWrite .harness-state/baseline.py
+Wrote file successfully.
+[0m
+[0m← [0mEdit .harness-state/baseline.py
+Index: /work/.harness-state/baseline.py
+===================================================================
+--- /work/.harness-state/baseline.py
++++ /work/.harness-state/baseline.py
+@@ -58,13 +58,15 @@
+     auc = roc_auc_score(yva, p)
+     fold_scores.append(auc)
+     oof[va_idx] = p
+     print(f"fold {fold}: auc={auc:.5f} best_iter={m.best_iteration_}")
++    best_iters.append(m.best_iteration_)
+ oof_auc = roc_auc_score(y, oof)
+ print(f"mean fold auc={np.mean(fold_scores):.5f} std={np.std(fold_scores):.5f} oof auc={oof_auc:.5f} time={time.time()-t0:.0f}s")
+ 
+ # full-data fit for test predictions
+-m_full = lgb.LGBMClassifier(**params, n_estimators=int(np.mean([m.best_iteration_ for m in []]) or 500))
++n_est = int(np.median(best_iters))
++m_full = lgb.LGBMClassifier(**params, n_estimators=n_est)
+ m_full.fit(X, y)
+ pt = m_full.predict_proba(Xt)[:, 1]
+ np.save("/work/.harness-state/oof.npy", oof)
+ np.save("/work/.harness-state/test_preds_baseline.npy", pt)
+
+[0m
+[0m← [0mEdit .harness-state/baseline.py
+Index: /work/.harness-state/baseline.py
+===================================================================
+--- /work/.harness-state/baseline.py
++++ /work/.harness-state/baseline.py
+@@ -42,8 +42,9 @@
+ 
+ skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+ oof = np.zeros(len(train))
+ fold_scores = []
++best_iters = []
+ t0 = time.time()
+ for fold, (tr_idx, va_idx) in enumerate(skf.split(X, y)):
+     Xtr, Xva = X.iloc[tr_idx], X.iloc[va_idx]
+     ytr, yva = y[tr_idx], y[va_idx]
+
+[0m
+[0m$ [0mpython /work/.harness-state/baseline.py
+features: ['age', 'daily_screen_time_hours', 'social_media_hours', 'gaming_hours', 'work_study_hours', 'sleep_hours', 'notifications_per_day', 'app_opens_per_day', 'weekend_screen_time', 'gender', 'stress_level', 'academic_work_impact']
+categorical: ['gender', 'stress_level', 'academic_work_impact']
+fold 0: auc=0.96264 best_iter=2401
+fold 1: auc=0.96355 best_iter=2999
+fold 2: auc=0.96388 best_iter=2566
+fold 3: auc=0.96438 best_iter=2909
+fold 4: auc=0.96335 best_iter=2976
+mean fold auc=0.96356 std=0.00058 oof auc=0.96356 time=312s
+baseline test pred range: 3.389245175915192e-05 0.9999999968176712 mean: 0.6520518300722833
+[0m
+[0m# [0mTodos
+[✓] EDA: shapes, dtypes, missingness, target distribution
+[✓] Baseline LightGBM + 5-fold stratified CV ROC AUC
+[•] Optuna tuning + feature engineering (time-boxed)
+[ ] Final train on full data, predict test, write /work/submission.csv
+[ ] Verify format (ids, columns, [0,1] range) and evidence log
+[ ] AAR
+[0m
+[0m← [0mWrite .harness-state/tune.py
+Wrote file successfully.
+[0m
+[0m← [0mEdit .harness-state/tune.py
+Index: /work/.harness-state/tune.py
+===================================================================
+--- /work/.harness-state/tune.py
++++ /work/.harness-state/tune.py
+@@ -21,8 +21,9 @@
+     d["notif_per_app"] = d["notifications_per_day"] / d["app_opens_per_day"].replace(0, np.nan)
+     d["screen_per_awake_hour"] = d["daily_screen_time_hours"] / (24 - d["sleep_hours"]).replace(0, np.nan)
+     d["age_sq"] = d["age"] ** 2
+     d["is_student_impact"] = (d["academic_work_impact"] == "Yes").astype(float)
++    d = d.replace([np.inf, -np.inf], np.nan)
+     return d
+ 
+ train = add_fe(train)
+ test = pd.read_csv("/data/test.csv")
+
+[0m
+[0m$ [0mpython /work/.harness-state/tune.py
+[I 2026-11-07 22:32:08,786] A new study created in memory with name: no-name-3f24fabe-2383-4833-af6b-3a6cf14fbc67
+n features: 22 | new feats: ['screen_sum', 'screen_n_avail', 'ratio_social_media_hours', 'ratio_gaming_hours', 'ratio_work_study_hours', 'ratio_weekend_daily', 'notif_per_app', 'screen_per_awake_hour', 'age_sq', 'is_student_impact']
+tuning on 200000 rows, pos rate 0.709425
+  0%|          | 0/25 [00:00<?, ?it/s]                                        0%|          | 0/25 [00:00<?, ?it/s]                                        0%|          | 0/25 [00:00<?, ?it/s]  0%|          | 0/25 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/work/.harness-state/tune.py", line 76, in <module>
+    study.optimize(objective, n_trials=25, show_progress_bar=True)
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/study.py", line 475, in optimize
+    _optimize(
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 63, in _optimize
+    _optimize_sequential(
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 160, in _optimize_sequential
+    frozen_trial = _run_trial(study, func, catch)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 248, in _run_trial
+    raise func_err
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 197, in _run_trial
+    value_or_values = func(trial)
+                      ^^^^^^^^^^^
+  File "/work/.harness-state/tune.py", line 52, in objective
+    learning_rate=trial.loguniform("learning_rate", 0.01, 0.1),
+                  ^^^^^^^^^^^^^^^^
+AttributeError: 'Trial' object has no attribute 'loguniform'
+[W 2026-11-07 22:32:08,787] Trial 0 failed with parameters: {} because of the following error: AttributeError("'Trial' object has no attribute 'loguniform'").
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 197, in _run_trial
+    value_or_values = func(trial)
+                      ^^^^^^^^^^^
+  File "/work/.harness-state/tune.py", line 52, in objective
+    learning_rate=trial.loguniform("learning_rate", 0.01, 0.1),
+                  ^^^^^^^^^^^^^^^^
+AttributeError: 'Trial' object has no attribute 'loguniform'
+[W 2026-11-07 22:32:08,788] Trial 0 failed with value None.
+[0m
+Optuna API version difference — `loguniform` is `suggest_float(..., log=True)` here. Fixing:
+[0m$ [0mpython -c "import optuna; print(optuna.__version__)"
+4.2.1
+[0m
+[0m$ [0mcd /work/.harness-state && sed -i 's/trial\.loguniform("learning_rate", 0.01, 0.1)/trial.suggest_float("learning_rate", 0.01, 0.1, log=True)/; s/trial\.loguniform("reg_alpha", 1e-3, 10.0)/trial.suggest_float("reg_alpha", 1e-3, 10.0, log=True)/; s/trial\.loguniform("reg_lambda", 1e-3, 10.0)/trial.suggest_float("reg_lambda", 1e-3, 10.0, log=True)/' tune.py && grep -n "suggest_float\|suggest_int\|suggest" tune.py | head -20
+52:        learning_rate=trial.suggest_float("learning_rate", 0.01, 0.1, log=True),
+58:        reg_alpha=trial.suggest_float("reg_alpha", 1e-3, 10.0, log=True),
+59:        reg_lambda=trial.suggest_float("reg_lambda", 1e-3, 10.0, log=True),
+[0m
+[0m$ [0mpython /work/.harness-state/tune.py
+[I 2026-11-07 22:32:17,806] A new study created in memory with name: no-name-d4bf1f08-7a4a-4410-9ed4-54b126fdc54c
+n features: 22 | new feats: ['screen_sum', 'screen_n_avail', 'ratio_social_media_hours', 'ratio_gaming_hours', 'ratio_work_study_hours', 'ratio_weekend_daily', 'notif_per_app', 'screen_per_awake_hour', 'age_sq', 'is_student_impact']
+tuning on 200000 rows, pos rate 0.709425
+[W 2026-11-07 22:32:17,808] Trial 0 failed with parameters: {'learning_rate': 0.023688639503640783} because of the following error: AttributeError("'Trial' object has no attribute 'int'").
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 197, in _run_trial
+    value_or_values = func(trial)
+                      ^^^^^^^^^^^
+  File "/work/.harness-state/tune.py", line 53, in objective
+    num_leaves=trial.int("num_leaves", 15, 150),
+               ^^^^^^^^^
+AttributeError: 'Trial' object has no attribute 'int'
+[W 2026-11-07 22:32:17,809] Trial 0 failed with value None.
+  0%|          | 0/25 [00:00<?, ?it/s]                                        0%|          | 0/25 [00:00<?, ?it/s]                                        0%|          | 0/25 [00:00<?, ?it/s]  0%|          | 0/25 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/work/.harness-state/tune.py", line 76, in <module>
+    study.optimize(objective, n_trials=25, show_progress_bar=True)
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/study.py", line 475, in optimize
+    _optimize(
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 63, in _optimize
+    _optimize_sequential(
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 160, in _optimize_sequential
+    frozen_trial = _run_trial(study, func, catch)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 248, in _run_trial
+    raise func_err
+  File "/usr/local/lib/python3.12/site-packages/optuna/study/_optimize.py", line 197, in _run_trial
+    value_or_values = func(trial)
+                      ^^^^^^^^^^^
+  File "/work/.harness-state/tune.py", line 53, in objective
+    num_leaves=trial.int("num_leaves", 15, 150),
+               ^^^^^^^^^
+AttributeError: 'Trial' object has no attribute 'int'
+[0m
+[0m$ [0mpython -c "
+import optuna
+t = optuna.trial.Trial
+print([m for m in dir(t) if m.startswith('suggest')])
+"
+['suggest_categorical', 'suggest_discrete_uniform', 'suggest_float', 'suggest_int', 'suggest_loguniform', 'suggest_uniform']
+[0m
+The methods are `suggest_int`/`suggest_float`/`suggest_categorical` (not `trial.int`/`trial.uniform`/`trial.choice`). Fixing:
+[0m$ [0mcd /work/.harness-state && sed -i 's/trial\.int("num_leaves", 15, 150)/trial.suggest_int("num_leaves", 15, 150)/; s/trial\.choice("max_depth", \[-1, 6, 8, 10, 12\])/trial.suggest_categorical("max_depth", [-1, 6, 8, 10, 12])/; s/trial\.int("min_child_samples", 5, 100)/trial.suggest_int("min_child_samples", 5, 100)/; s/trial\.uniform("subsample", 0.6, 1.0)/trial.suggest_float("subsample", 0.6, 1.0)/; s/trial\.uniform("colsample_bytree", 0.6, 1.0)/trial.suggest_float("colsample_bytree", 0.6, 1.0)/; s/trial\.uniform("min_split_gain", 0.0, 0.1)/trial.suggest_float("min_split_gain", 0.0, 0.1)/' tune.py && python tune.py
+[I 2026-11-07 22:32:30,019] A new study created in memory with name: no-name-7a5f0840-1300-45fb-86c6-b7e149494450
+n features: 22 | new feats: ['screen_sum', 'screen_n_avail', 'ratio_social_media_hours', 'ratio_gaming_hours', 'ratio_work_study_hours', 'ratio_weekend_daily', 'notif_per_app', 'screen_per_awake_hour', 'age_sq', 'is_student_impact']
+tuning on 200000 rows, pos rate 0.709425
+  0%|          | 0/25 [00:00<?, ?it/s]                                        0%|          | 0/25 [01:16<?, ?it/s]Best trial: 0. Best value: 0.959921:   0%|          | 0/25 [01:16<?, ?it/s]Best trial: 0. Best value: 0.959921:   4%|▍         | 1/25 [01:16<30:33, 76.38s/it]                                                                                   Best trial: 0. Best value: 0.959921:   4%|▍         | 1/25 [02:26<30:33, 76.38s/it]Best trial: 0. Best value: 0.959921:   4%|▍         | 1/25 [02:26<30:33, 76.38s/it]Best trial: 0. Best value: 0.959921:   8%|▊         | 2/25 [02:26<27:57, 72.91s/it]                                                                                   Best trial: 0. Best value: 0.959921:   8%|▊         | 2/25 [03:49<27:57, 72.91s/it]Best trial: 0. Best value: 0.959921:   8%|▊         | 2/25 [03:49<27:57, 72.91s/it]Best trial: 0. Best value: 0.959921:  12%|█▏        | 3/25 [03:49<28:26, 77.55s/it]                                                                                   Best trial: 0. Best value: 0.959921:  12%|█▏        | 3/25 [04:58<28:26, 77.55s/it]Best trial: 0. Best value: 0.959921:  12%|█▏        | 3/25 [04:58<28:26, 77.55s/it]Best trial: 0. Best value: 0.959921:  16%|█▌        | 4/25 [04:58<25:55, 74.06s/it]                                                                                   Best trial: 0. Best value: 0.959921:  16%|█▌        | 4/25 [05:39<25:55, 74.06s/it]Best trial: 4. Best value: 0.960422:  16%|█▌        | 4/25 [05:39<25:55, 74.06s/it]Best trial: 4. Best value: 0.960422:  20%|██        | 5/25 [05:39<20:38, 61.91s/it]                                                                                   Best trial: 4. Best value: 0.960422:  20%|██        | 5/25 [06:43<20:38, 61.91s/it]Best trial: 4. Best value: 0.960422:  20%|██        | 5/25 [06:43<20:38, 61.91s/it]Best trial: 4. Best value: 0.960422:  24%|██▍       | 6/25 [06:43<19:54, 62.87s/it]                                                                                   Best trial: 4. Best value: 0.960422:  24%|██▍       | 6/25 [07:52<19:54, 62.87s/it]Best trial: 4. Best value: 0.960422:  24%|██▍       | 6/25 [07:52<19:54, 62.87s/it]Best trial: 4. Best value: 0.960422:  28%|██▊       | 7/25 [07:52<19:28, 64.94s/it]                                                                                   Best trial: 4. Best value: 0.960422:  28%|██▊       | 7/25 [08:45<19:28, 64.94s/it]Best trial: 4. Best value: 0.960422:  28%|██▊       | 7/25 [08:45<19:28, 64.94s/it]Best trial: 4. Best value: 0.960422:  32%|███▏      | 8/25 [08:45<17:18, 61.09s/it]                                                                                   Best trial: 4. Best value: 0.960422:  32%|███▏      | 8/25 [09:26<17:18, 61.09s/it]Best trial: 4. Best value: 0.960422:  32%|███▏      | 8/25 [09:26<17:18, 61.09s/it]Best trial: 4. Best value: 0.960422:  36%|███▌      | 9/25 [09:26<14:33, 54.57s/it]                                                                                   Best trial: 4. Best value: 0.960422:  36%|███▌      | 9/25 [10:53<14:33, 54.57s/it]Best trial: 4. Best value: 0.960422:  36%|███▌      | 9/25 [10:53<14:33, 54.57s/it]Best trial: 4. Best value: 0.960422:  40%|████      | 10/25 [10:53<16:09, 64.65s/it]                                                                                    Best trial: 4. Best value: 0.960422:  40%|████      | 10/25 [11:18<16:09, 64.65s/it]Best trial: 4. Best value: 0.960422:  40%|████      | 10/25 [11:18<16:09, 64.65s/it]Best trial: 4. Best value: 0.960422:  44%|████▍     | 11/25 [11:18<12:17, 52.65s/it]                                                                                    Best trial: 4. Best value: 0.960422:  44%|████▍     | 11/25 [11:48<12:17, 52.65s/it]Best trial: 4. Best value: 0.960422:  44%|████▍     | 11/25 [11:48<12:17, 52.65s/it]Best trial: 4. Best value: 0.960422:  48%|████▊     | 12/25 [11:48<09:53, 45.62s/it]                                                                                    Best trial: 4. Best value: 0.960422:  48%|████▊     | 12/25 [12:22<09:53, 45.62s/it]Best trial: 4. Best value: 0.960422:  48%|████▊     | 12/25 [12:22<09:53, 45.62s/it]Best trial: 4. Best value: 0.960422:  52%|█████▏    | 13/25 [12:22<08:25, 42.13s/it]                                                                                    Best trial: 4. Best value: 0.960422:  52%|█████▏    | 13/25 [13:19<08:25, 42.13s/it]Best trial: 13. Best value: 0.960557:  52%|█████▏    | 13/25 [13:19<08:25, 42.13s/it]Best trial: 13. Best value: 0.960557:  56%|█████▌    | 14/25 [13:19<08:32, 46.62s/it]                                                                                     Best trial: 13. Best value: 0.960557:  56%|█████▌    | 14/25 [14:10<08:32, 46.62s/it]Best trial: 14. Best value: 0.960603:  56%|█████▌    | 14/25 [14:10<08:32, 46.62s/it]Best trial: 14. Best value: 0.960603:  60%|██████    | 15/25 [14:10<07:59, 47.99s/it]                                                                                     Best trial: 14. Best value: 0.960603:  60%|██████    | 15/25 [15:11<07:59, 47.99s/it]Best trial: 15. Best value: 0.960618:  60%|██████    | 15/25 [15:11<07:59, 47.99s/it]Best trial: 15. Best value: 0.960618:  64%|██████▍   | 16/25 [15:11<07:48, 52.02s/it]                                                                                     Best trial: 15. Best value: 0.960618:  64%|██████▍   | 16/25 [16:01<07:48, 52.02s/it]Best trial: 15. Best value: 0.960618:  64%|██████▍   | 16/25 [16:01<07:48, 52.02s/it]Best trial: 15. Best value: 0.960618:  68%|██████▊   | 17/25 [16:01<06:49, 51.24s/it]                                                                                     Best trial: 15. Best value: 0.960618:  68%|██████▊   | 17/25 [16:47<06:49, 51.24s/it]Best trial: 15. Best value: 0.960618:  68%|██████▊   | 17/25 [16:47<06:49, 51.24s/it]Best trial: 15. Best value: 0.960618:  72%|███████▏  | 18/25 [16:47<05:48, 49.74s/it]                                                                                     Best trial: 15. Best value: 0.960618:  72%|███████▏  | 18/25 [17:36<05:48, 49.74s/it]Best trial: 15. Best value: 0.960618:  72%|███████▏  | 18/25 [17:36<05:48, 49.74s/it]Best trial: 15. Best value: 0.960618:  76%|███████▌  | 19/25 [17:36<04:56, 49.48s/it]                                                                                     [I 2026-11-07 22:33:46,397] Trial 0 finished with value: 0.9599210691990244 and parameters: {'learning_rate': 0.023688639503640783, 'num_leaves': 144, 'max_depth': -1, 'min_child_samples': 88, 'subsample': 0.8404460046972835, 'colsample_bytree': 0.8832290311184181, 'reg_alpha': 0.0012087541473056963, 'reg_lambda': 7.579479953348009, 'min_split_gain': 0.08324426408004218}. Best is trial 0 with value: 0.9599210691990244.
+[I 2026-11-07 22:34:56,887] Trial 1 finished with value: 0.9585618794791285 and parameters: {'learning_rate': 0.016305687346221478, 'num_leaves': 39, 'max_depth': 8, 'min_child_samples': 63, 'subsample': 0.6557975442608167, 'colsample_bytree': 0.7168578594140873, 'reg_alpha': 0.029204338471814112, 'reg_lambda': 0.06672367170464207, 'min_split_gain': 0.07851759613930137}. Best is trial 0 with value: 0.9599210691990244.
+[I 2026-11-07 22:36:19,954] Trial 2 finished with value: 0.958705141342218 and parameters: {'learning_rate': 0.015837031559118753, 'num_leaves': 84, 'max_depth': 8, 'min_child_samples': 96, 'subsample': 0.9862528132298237, 'colsample_bytree': 0.9233589392465844, 'reg_alpha': 0.01653693718282442, 'reg_lambda': 0.002458603276328005, 'min_split_gain': 0.0684233026512157}. Best is trial 0 with value: 0.9599210691990244.
+[I 2026-11-07 22:37:28,673] Trial 3 finished with value: 0.9594699998957975 and parameters: {'learning_rate': 0.027551959649510765, 'num_leaves': 31, 'max_depth': 8, 'min_child_samples': 34, 'subsample': 0.8080272084711243, 'colsample_bytree': 0.8186841117373118, 'reg_alpha': 0.0054880470007660455, 'reg_lambda': 7.556810141274429, 'min_split_gain': 0.07751328233611146}. Best is trial 0 with value: 0.9599210691990244.
+[I 2026-11-07 22:38:09,039] Trial 4 finished with value: 0.9604221202201894 and parameters: {'learning_rate': 0.08699593128513321, 'num_leaves': 136, 'max_depth': 6, 'min_child_samples': 36, 'subsample': 0.7554709158757928, 'colsample_bytree': 0.7085396127095583, 'reg_alpha': 2.0651425578959257, 'reg_lambda': 0.026730883107816707, 'min_split_gain': 0.02809345096873808}. Best is trial 4 with value: 0.9604221202201894.
+[I 2026-11-07 22:39:13,759] Trial 5 finished with value: 0.9599573699553896 and parameters: {'learning_rate': 0.03488960745139221, 'num_leaves': 34, 'max_depth': 8, 'min_child_samples': 5, 'subsample': 0.9261845713819337, 'colsample_bytree': 0.8827429375390468, 'reg_alpha': 0.8241925264876453, 'reg_lambda': 1.2164139351417065, 'min_split_gain': 0.007404465173409036}. Best is trial 4 with value: 0.9604221202201894.
+[I 2026-11-07 22:40:22,974] Trial 6 finished with value: 0.9596042095028138 and parameters: {'learning_rate': 0.02282788775990513, 'num_leaves': 30, 'max_depth': -1, 'min_child_samples': 36, 'subsample': 0.8918424713352255, 'colsample_bytree': 0.8550229885420852, 'reg_alpha': 3.53875886477924, 'reg_lambda': 0.0774211647399625, 'min_split_gain': 0.01195942459383017}. Best is trial 4 with value: 0.9604221202201894.
+[I 2026-11-07 22:41:15,828] Trial 7 finished with value: 0.9599000157539894 and parameters: {'learning_rate': 0.05167075260023277, 'num_leaves': 118, 'max_depth': 6, 'min_child_samples': 7, 'subsample': 0.6431565707973218, 'colsample_bytree': 0.6125716742746937, 'reg_alpha': 0.35127047262708466, 'reg_lambda': 0.018089390092767135, 'min_split_gain': 0.05085706911647028}. Best is trial 4 with value: 0.9604221202201894.
+[I 2026-11-07 22:41:56,059] Trial 8 finished with value: 0.9599809355669793 and parameters: {'learning_rate': 0.08082886378162035, 'num_leaves': 48, 'max_depth': 6, 'min_child_samples': 20, 'subsample': 0.9718790609370292, 'colsample_bytree': 0.9232481518257668, 'reg_alpha': 0.34167643418329696, 'reg_lambda': 3.06085221067225, 'min_split_gain': 0.08036720768991146}. Best is trial 4 with value: 0.9604221202201894.
+[I 2026-11-07 22:43:23,261] Trial 9 finished with value: 0.9585214536418359 and parameters: {'learning_rate': 0.015366326576125024, 'num_leaves': 136, 'max_depth': 8, 'min_child_samples': 26, 'subsample': 0.7708431154505025, 'colsample_bytree': 0.9272059063689972, 'reg_alpha': 2.7728241828010627, 'reg_lambda': 0.001066125968943389, 'min_split_gain': 0.05107473025775658}. Best is trial 4 with value: 0.9604221202201894.
+[I 2026-11-07 22:43:48,711] Trial 10 finished with value: 0.9596115087818022 and parameters: {'learning_rate': 0.09538431211617937, 'num_leaves': 93, 'max_depth': 12, 'min_child_samples': 58, 'subsample': 0.7326470057790305, 'colsample_bytree': 0.7320366514108956, 'reg_alpha': 7.651504899545575, 'reg_lambda': 0.5084983159628164, 'min_split_gain': 0.02600990408514247}. Best is trial 4 with value: 0.9604221202201894.
+[I 2026-11-07 22:44:18,246] Trial 11 finished with value: 0.9594749920813159 and parameters: {'learning_rate': 0.099026597368006, 'num_leaves': 62, 'max_depth': 6, 'min_child_samples': 23, 'subsample': 0.7168953862007945, 'colsample_bytree': 0.9815488938916745, 'reg_alpha': 0.3007016232607131, 'reg_lambda': 0.5748594743060447, 'min_split_gain': 0.09978439331273561}. Best is trial 4 with value: 0.9604221202201894.
+[I 2026-11-07 22:44:52,345] Trial 12 finished with value: 0.95965041903112 and parameters: {'learning_rate': 0.059116058622186135, 'num_leaves': 61, 'max_depth': 10, 'min_child_samples': 46, 'subsample': 0.9978822292153947, 'colsample_bytree': 0.7404121787937141, 'reg_alpha': 0.14403910932208483, 'reg_lambda': 0.009619058105849778, 'min_split_gain': 0.03546928572303361}. Best is trial 4 with value: 0.9604221202201894.
+[I 2026-11-07 22:45:49,340] Trial 13 finished with value: 0.9605569211545553 and parameters: {'learning_rate': 0.05152023107375699, 'num_leaves': 109, 'max_depth': 6, 'min_child_samples': 75, 'subsample': 0.8728967971796608, 'colsample_bytree': 0.6316478243319358, 'reg_alpha': 1.2015633022470609, 'reg_lambda': 0.0174229820433949, 'min_split_gain': 0.032658702284757715}. Best is trial 13 with value: 0.9605569211545553.
+[I 2026-11-07 22:46:40,499] Trial 14 finished with value: 0.9606033198307711 and parameters: {'learning_rate': 0.05225175205684554, 'num_leaves': 111, 'max_depth': 6, 'min_child_samples': 75, 'subsample': 0.852433737415586, 'colsample_bytree': 0.6101570062137635, 'reg_alpha': 1.3909412130231014, 'reg_lambda': 0.01503025683347017, 'min_split_gain': 0.0320850178619817}. Best is trial 14 with value: 0.9606033198307711.
+[I 2026-11-07 22:47:41,886] Trial 15 finished with value: 0.9606182050859018 and parameters: {'learning_rate': 0.04403603254431309, 'num_leaves': 107, 'max_depth': 6, 'min_child_samples': 76, 'subsample': 0.8678605201648912, 'colsample_bytree': 0.6157524052603378, 'reg_alpha': 1.195583333131416, 'reg_lambda': 0.004632022211515516, 'min_split_gain': 0.03572884797768367}. Best is trial 15 with value: 0.9606182050859018.
+[I 2026-11-07 22:48:31,305] Trial 16 finished with value: 0.9593845265255752 and parameters: {'learning_rate': 0.03587099990185589, 'num_leaves': 104, 'max_depth': 12, 'min_child_samples': 74, 'subsample': 0.8250051428101366, 'colsample_bytree': 0.6675410323894867, 'reg_alpha': 8.985578487245386, 'reg_lambda': 0.004926511864685363, 'min_split_gain': 0.04219167479872393}. Best is trial 15 with value: 0.9606182050859018.
+[I 2026-11-07 22:49:17,555] Trial 17 finished with value: 0.959420388075363 and parameters: {'learning_rate': 0.041678556023677434, 'num_leaves': 122, 'max_depth': 10, 'min_child_samples': 77, 'subsample': 0.9031236877112143, 'colsample_bytree': 0.6656195870182502, 'reg_alpha': 0.0941328520585287, 'reg_lambda': 0.0022172510754331115, 'min_split_gain': 0.017508504057930876}. Best is trial 15 with value: 0.9606182050859018.
+[I 2026-11-07 22:50:06,415] Trial 18 finished with value: 0.9604096250345865 and parameters: {'learning_rate': 0.06397118551214848, 'num_leaves': 73, 'max_depth': 6, 'min_child_samples': 86, 'subsample': 0.8501148101077646, 'colsample_bytree': 0.7888490300704192, 'reg_alpha': 0.7983105440459757, 'reg_lambda': 0.17703579327238828, 'min_split_gain': 0.057130821222101016}. Best is trial 15 with value: 0.9606182050859018.
+[I 2026-11-07 22:51:04,323] Trial 19 finished with value: 0.9533407736517168 and parameters: {'learning_rate': 0.011749903193742372, 'num_leaves': 16, 'max_depth': 6, 'min_child_samples': 100, 'subsample': 0.9473288953979478, 'colsample_bytree': 0.6017546372024858, 'reg_alpha': 0.07436438531213577, 'reg_lambda': 0.005668672734672904, 'min_split_gain': 0.042730894229504546}. Best is trial 15 with value: 0.9606182050859018.Best trial: 15. Best value: 0.960618:  76%|███████▌  | 19/25 [18:34<04:56, 49.48s/it]Best trial: 15. Best value: 0.960618:  76%|███████▌  | 19/25 [18:34<04:56, 49.48s/it]Best trial: 15. Best value: 0.960618:  80%|████████  | 20/25 [18:34<04:20, 52.01s/it]                                                                                     Best trial: 15. Best value: 0.960618:  80%|████████  | 20/25 [19:41<04:20, 52.01s/it]Best trial: 20. Best value: 0.960675:  80%|████████  | 20/25 [19:41<04:20, 52.01s/it]Best trial: 20. Best value: 0.960675:  84%|████████▍ | 21/25 [19:41<03:46, 56.60s/it]                                                                                     Best trial: 20. Best value: 0.960675:  84%|████████▍ | 21/25 [20:46<03:46, 56.60s/it]Best trial: 20. Best value: 0.960675:  84%|████████▍ | 21/25 [20:46<03:46, 56.60s/it]Best trial: 20. Best value: 0.960675:  88%|████████▊ | 22/25 [20:46<02:57, 59.06s/it]                                                                                     Best trial: 20. Best value: 0.960675:  88%|████████▊ | 22/25 [21:27<02:57, 59.06s/it]Best trial: 20. Best value: 0.960675:  88%|████████▊ | 22/25 [21:27<02:57, 59.06s/it]Best trial: 20. Best value: 0.960675:  92%|█████████▏| 23/25 [21:27<01:47, 53.62s/it]                                                                                     Best trial: 20. Best value: 0.960675:  92%|█████████▏| 23/25 [22:34<01:47, 53.62s/it]Best trial: 20. Best value: 0.960675:  92%|█████████▏| 23/25 [22:34<01:47, 53.62s/it]Best trial: 20. Best value: 0.960675:  96%|█████████▌| 24/25 [22:34<00:57, 57.80s/it]                                                                                     Best trial: 20. Best value: 0.960675:  96%|█████████▌| 24/25 [23:44<00:57, 57.80s/it]Best trial: 20. Best value: 0.960675:  96%|█████████▌| 24/25 [23:44<00:57, 57.80s/it]Best trial: 20. Best value: 0.960675: 100%|██████████| 25/25 [23:44<00:00, 61.27s/it]Best trial: 20. Best value: 0.960675: 100%|██████████| 25/25 [23:44<00:00, 56.97s/it]
+
+[I 2026-11-07 22:52:11,634] Trial 20 finished with value: 0.9606750116038961 and parameters: {'learning_rate': 0.04261431979036588, 'num_leaves': 99, 'max_depth': 6, 'min_child_samples': 67, 'subsample': 0.7904260454884076, 'colsample_bytree': 0.6720923675580228, 'reg_alpha': 4.175569680385453, 'reg_lambda': 0.04241851259486759, 'min_split_gain': 0.02191093464269502}. Best is trial 20 with value: 0.9606750116038961.
+[I 2026-11-07 22:53:16,432] Trial 21 finished with value: 0.9605766482105835 and parameters: {'learning_rate': 0.042643636329634194, 'num_leaves': 98, 'max_depth': 6, 'min_child_samples': 66, 'subsample': 0.7859216135145127, 'colsample_bytree': 0.6517493522789961, 'reg_alpha': 4.2799344925904625, 'reg_lambda': 0.04442503732526975, 'min_split_gain': 0.0015876921981028101}. Best is trial 20 with value: 0.9606750116038961.
+[I 2026-11-07 22:53:57,347] Trial 22 finished with value: 0.9603154184127275 and parameters: {'learning_rate': 0.0695320254684695, 'num_leaves': 122, 'max_depth': 6, 'min_child_samples': 52, 'subsample': 0.7123309056025083, 'colsample_bytree': 0.6869473370397213, 'reg_alpha': 1.3718193113629824, 'reg_lambda': 0.2458166556366186, 'min_split_gain': 0.015174754781650266}. Best is trial 20 with value: 0.9606750116038961.
+[I 2026-11-07 22:55:04,896] Trial 23 finished with value: 0.9603037673286132 and parameters: {'learning_rate': 0.04237771176547212, 'num_leaves': 84, 'max_depth': 6, 'min_child_samples': 81, 'subsample': 0.8641094031445589, 'colsample_bytree': 0.7691432463691734, 'reg_alpha': 0.6679635555290717, 'reg_lambda': 0.00963911323202032, 'min_split_gain': 0.022198782806985454}. Best is trial 20 with value: 0.9606750116038961.
+[I 2026-11-07 22:56:14,284] Trial 24 finished with value: 0.9602893988757918 and parameters: {'learning_rate': 0.02898963802358522, 'num_leaves': 111, 'max_depth': -1, 'min_child_samples': 68, 'subsample': 0.8122192958369722, 'colsample_bytree': 0.6347264216551218, 'reg_alpha': 5.63597859482476, 'reg_lambda': 0.03322163548158208, 'min_split_gain': 0.03861799593608741}. Best is trial 20 with value: 0.9606750116038961.
+best: 0.9606750116038961 {'learning_rate': 0.04261431979036588, 'num_leaves': 99, 'max_depth': 6, 'min_child_samples': 67, 'subsample': 0.7904260454884076, 'colsample_bytree': 0.6720923675580228, 'reg_alpha': 4.175569680385453, 'reg_lambda': 0.04241851259486759, 'min_split_gain': 0.02191093464269502}
+time: 1424.266930103302
+[0m
+Tuning done: best subsample 3-fold AUC = 0.9607, but that's *below* the baseline's 0.9636 on full data — likely subsample/3-fold noise plus engineered features not helping enough. I must verify on full 5-fold before shipping. Time used: ~29 min; ~31 min left.
+[0m← [0mWrite .harness-state/final.py
+Wrote file successfully.
+[0m
+[0m$ [0mpython /work/.harness-state/final.py
+fold 0: auc=0.96394 best_iter=3127
+fold 1: auc=0.96454 best_iter=2721
+fold 2: auc=0.96473 best_iter=2809
+fold 3: auc=0.96530 best_iter=2609
+fold 4: auc=0.96437 best_iter=2983
+TUNED+FE mean=0.96458 std=0.00045 oof=0.96457 time=449s
+BASELINE+FE mean=0.96377 std=0.00045 oof=0.50000
+chosen: tuned+fe
+sub rows: 296302 id match: True range: 0.00011510538014097143 0.9999999180940509 mean: 0.709494328956058
+[0m
+[0m# [0mTodos
+[✓] EDA: shapes, dtypes, missingness, target distribution
+[✓] Baseline LightGBM + 5-fold stratified CV ROC AUC
+[✓] Optuna tuning + feature engineering (time-boxed)
+[✓] Final train on full data, predict test, write /work/submission.csv
+[•] Verify format (ids, columns, [0,1] range) and evidence log
+[ ] AAR
+[0m
+[0m← [0mWrite .harness-state/verify.py
+Wrote file successfully.
+[0m
+[0m$ [0mpython /work/.harness-state/verify.py
+C1_columns: PASS
+C1_rows: PASS
+C1_ids_values: PASS
+C1_ids_order: PASS
+C2_range_0_1: PASS
+C2_no_nan: PASS
+C2_dtype_float: PASS
+sub head:
+        id  addicted_label
+0  691369        0.999722
+1  691370        0.960233
+2  691371        0.960985
+3  691372        0.991294
+4  691373        0.996567
+pred stats: {'min': 0.0001151053801409, 'max': 0.9999999180940508, 'mean': 0.709494328956058}
+ALL PASS
+[0m
+[0m# [0mTodos
+[✓] EDA: shapes, dtypes, missingness, target distribution
+[✓] Baseline LightGBM + 5-fold stratified CV ROC AUC
+[✓] Optuna tuning + feature engineering (time-boxed)
+[✓] Final train on full data, predict test, write /work/submission.csv
+[✓] Verify format (ids, columns, [0,1] range) and evidence log
+[✓] AAR
+[0m
+All checks PASS. Now the evidence log, decision record, and AAR:
+[0m← [0mWrite .harness-state/evidence.md
+Wrote file successfully.
+[0m
+[0m← [0mWrite .harness-state/decisions.md
+Wrote file successfully.
+[0m
+[0m← [0mWrite .harness-state/aar.md
+Wrote file successfully.
+[0m
+Task complete. `/work/submission.csv` is written and verified.
+
+## Result summary
+
+**Deliverable:** `/work/submission.csv` — 296,302 rows, columns `id,addicted_label`, ids identical to `/data/sample_submission.csv` in the same order, all predicted probabilities in [0,1] (min 0.0001, max ~1.0, mean 0.7095 ≈ train base rate). All format checks PASS.
+
+**Modeling:**
+- Binary target (~71% positive), heavy missingness (up to ~19% in screen-time cols). LightGBM handles missing numerics natively and treats categorical NaN as its own category — no risky imputation/encoding pipeline.
+- Baseline plain LightGBM, 5-fold stratified CV ROC AUC: **0.9636**.
+- Optuna TPE tuning (25 trials, 200k-row stratified subsample, 3-fold) + feature engineering (screen-time ratios, notif-per-app-open, screen-per-awake-hour, age², etc.).
+- Chosen config verified on full 5-fold CV: **0.9646 ± 0.0005** (oof 0.9646), refit on all 691,369 training rows to produce test predictions.
+- Runtime ~45 min of the 60-min budget.
+
+**Note:** `/work/.harness` is owned by uid 1001 and not writable by this session (uid 1000), so harness state lives in `/work/.harness-state/` (intent.md, world.md, decisions.md, evidence.md, aar.md, plus scripts/metrics). Only `/work/submission.csv` counts for the deliverable.
+
+Evidence of every acceptance criterion is logged in `/work/.harness-state/evidence.md`. No public leaderboard score is available (no internet), so performance is evidenced solely by local CV.
