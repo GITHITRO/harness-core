@@ -30,6 +30,7 @@ jobs:
             export KAGGLE_KEY=$(printf '%s' "$RAW" | tr -d '[:space:]'); echo "::add-mask::$KAGGLE_KEY"; FMT=legacy-key+username
           elif [ -n "$RAW" ]; then
             TOK=$(printf '%s' "$RAW" | sed -E 's/^[[:space:]]*KAGGLE_API_TOKEN[[:space:]]*=[[:space:]]*//' | tr -d '[:space:]"')
+            printf '%s' "$TOK" | grep -Eq '^[0-9a-f]{32}$' && TOK="KGAT_$TOK"   # token pasted without its KGAT_ prefix
             echo "::add-mask::$TOK"; printf '%s' "$TOK" > ~/.kaggle/access_token; chmod 600 ~/.kaggle/access_token
             export KAGGLE_API_TOKEN="$TOK"; FMT="token(len=${#TOK},prefix=${TOK:0:5})"
           else FMT=none; fi
