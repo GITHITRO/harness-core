@@ -19,10 +19,27 @@ def main():
     os.makedirs(out, exist_ok=True)
     api = KaggleApi()
     api.authenticate()
-    comp = next(c for c in api.competitions_list(search=slug) if str(getattr(c, "ref", "")).rstrip("/").endswith(slug))
-    g = lambda k: getattr(comp, k, None) or getattr(comp, k[0].lower() + k[1:], None)
-    meta = {"slug": slug, "title": g("title"), "description": g("description"), "metric": g("evaluation_metric") or g("evaluationMetric"),
-            "enabled": str(g("enabled_date") or g("enabledDate") or "")[:10], "deadline": str(g("deadline") or "")[:10]}
+    resp = api.competitions_list(search=slug)
+    items = getattr(resp, "competitions", None) or resp            # new API wraps the list in a response object
+
+    def as_dict(c):
+        d = c.to_dict() if hasattr(c, "to_dict") else {k: v for k, v in vars(c).items()}
+        return {k.lstrip("_"): v for k, v in d.items()}
+
+    comps = [as_dict(c) for c in items]
+    comp = next(d for d in comps if str(d.get("ref") or d.get("url") or "").rstrip("/").endswith(slug))
+    print("competition fields:", sorted(comp)[:30])
+
+    def g(*names):
+        for n in names:
+            for k in (n, n[0].lower() + n[1:], "".join("_" + ch.lower() if ch.isupper() else ch for ch in n).lstrip("_")):
+                if comp.get(k) not in (None, ""):
+                    return comp[k]
+        return None
+
+    meta = {"slug": slug, "title": g("title"), "description": g("description"),
+            "metric": g("evaluationMetric", "evaluation_metric"),
+            "enabled": str(g("enabledDate", "enabled_date") or "")[:10], "deadline": str(g("deadline") or "")[:10]}
     subprocess.run(["kaggle", "competitions", "download", "-c", slug, "-p", out, "-q"], check=True)
     for z in [f for f in os.listdir(out) if f.endswith(".zip")]:
         zipfile.ZipFile(os.path.join(out, z)).extractall(out)
