@@ -1,0 +1,285 @@
+timestamp=2026-11-07T19:26:08.563Z level=ERROR run=a7ad79b0 message="Failed to fetch models.dev" cause="Cause([Fail(HttpClientError: Transport error (GET https://models.opencode.ai/api.json) (cause: TypeError: getaddrinfo EAI_AGAIN models.opencode.ai))])"
+[0m
+> build · nvidia/nemotron-3.5-super-vl:free
+[0m
+timestamp=2026-11-07T19:26:08.633Z level=WARN run=a7ad79b0 message="server unavailable" key=arxiv type=remote status=failed
+[0m$ [0mls /data && head -5 /data/train.csv && head -5 /data/test.csv && head -5 /data/sample_submission.csv
+TASK.md
+meta.json
+sample_submission.csv
+test.csv
+train.csv
+battle_turn,opponent_pokemon,opponent_type,move_used,move_type,move_category,weather_condition,pikachu_status,terrain_type,held_item,pikachu_ability,opponent_level,pikachu_level,move_power,attack_stat,defense_stat,sp_attack_stat,sp_defense_stat,speed_stat_pikachu,speed_stat_opponent,attack_stage,defense_stage,speed_stage,type_effectiveness,critical_hit,move_hit,friendship_level,experience_points,healing_applied,damage_dealt,previous_hp,max_hp,pikachu_hp,round,turn,trainer_focus_score
+Round 1 - Turn 00:00,Charizard,Fire,Thunderbolt,Electric,Special,Clear,,Grassy Terrain,Sitrus Berry,Static,27,26,90,,37,29,43,48,29,0,0,0,,0,1,133,2101,0,25,54,54,54,1,0,98.6
+Round 1 - Turn 01:00,Dragonite,Dragon,Electro Ball,Electric,Special,Clear,Paralyzed,Electric Terrain,Sitrus Berry,Static,32,26,80,34,26,39,49,55,25,0,-1,0,0.5,0,1,112,2989,0,25,31,54,11,1,1,27.7
+Round 1 - Turn 02:00,Steelix,Steel,Quick Attack,Electric,Physical,Rain,,,,Lightning Rod,24,26,40,30,31,33,38,46,47,-1,1,0,1,0,1,168,1926,0,10,7,54,12,1,2,39.4
+Round 1 - Turn 03:00,Charizard,Fire,Iron Tail,Electric,Physical,Sandstorm,,Misty Terrain,,Static,28,26,100,37,,27,42,54,65,0,0,-1,,0,1,147,1825,0,65,54,54,0,1,3,21.5
+battle_turn,opponent_pokemon,opponent_type,move_used,move_type,move_category,weather_condition,pikachu_status,terrain_type,held_item,pikachu_ability,opponent_level,pikachu_level,move_power,attack_stat,defense_stat,sp_attack_stat,sp_defense_stat,speed_stat_pikachu,speed_stat_opponent,attack_stage,defense_stage,speed_stage,type_effectiveness,critical_hit,move_hit,friendship_level,experience_points,healing_applied,damage_dealt,previous_hp,max_hp,round,turn,trainer_focus_score
+Round 1828 - Turn 00:00,,Psychic,Volt Tackle,Electric,Physical,Clear,,Electric Terrain,,Static,43.0,42.0,120.0,59.0,45.0,52.0,49.0,84.0,55.0,-1.0,0.0,1.0,1.0,0.0,1.0,87.0,2906.0,33.0,75.0,78.0,81.0,1828,0,64.4
+Round 1828 - Turn 01:00,Gengar,Ghost,Thunderbolt,Electric,Special,Hail,,Grassy Terrain,Sitrus Berry,Lightning Rod,41.0,42.0,90.0,60.0,45.0,48.0,43.0,87.0,60.0,0.0,0.0,2.0,1.0,0.0,1.0,200.0,2768.0,0.0,55.0,36.0,81.0,1828,1,70.4
+Round 1828 - Turn 02:00,Charizard,Fire,Nuzzle,Normal,Physical,Sandstorm,,,,Static,44.0,42.0,20.0,48.0,47.0,52.0,58.0,80.0,41.0,-2.0,-2.0,-2.0,1.0,0.0,1.0,197.0,2152.0,0.0,10.0,81.0,81.0,1828,2,40.6
+Round 1828 - Turn 03:00,Charizard,Fire,Nuzzle,Normal,Physical,Clear,,,Assault Vest,Static,41.0,42.0,20.0,47.0,37.0,49.0,59.0,87.0,67.0,1.0,-1.0,0.0,1.0,0.0,1.0,197.0,4411.0,29.0,,72.0,81.0,1828,3,34.3
+battle_turn,pikachu_hp
+Round 1828 - Turn 00:00,50
+Round 1828 - Turn 01:00,50
+Round 1828 - Turn 02:00,50
+Round 1828 - Turn 03:00,50
+[0m
+[0m$ [0mcd /work && python -c "
+import pandas as pd, numpy as np
+tr = pd.read_csv('/data/train.csv')
+te = pd.read_csv('/data/test.csv')
+print(tr.shape, te.shape)
+print(tr.isnull().sum()[tr.isnull().sum()>0])
+print(te.isnull().sum()[te.isnull().sum()>0])
+print('target stats:', tr.pikachu_hp.describe())
+# check relationship
+tr['pred'] = tr.previous_hp - tr.damage_dealt + tr.healing_applied
+from sklearn.metrics import r2_score
+print('simple r2:', r2_score(tr.pikachu_hp, tr.pred.clip(0, tr.max_hp)))
+print('clipped pred range')
+print(((tr.pred.clip(0)-tr.pikachu_hp).abs()).describe())
+"
+
+Traceback (most recent call last):
+  File "<string>", line 12, in <module>
+  File "/usr/local/lib/python3.12/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sklearn/metrics/_regression.py", line 1257, in r2_score
+    _check_reg_targets_with_floating_dtype(
+  File "/usr/local/lib/python3.12/site-packages/sklearn/metrics/_regression.py", line 198, in _check_reg_targets_with_floating_dtype
+    y_type, y_true, y_pred, multioutput = _check_reg_targets(
+                                          ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sklearn/metrics/_regression.py", line 106, in _check_reg_targets
+    y_pred = check_array(y_pred, ensure_2d=False, dtype=dtype)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sklearn/utils/validation.py", line 1107, in check_array
+    _assert_all_finite(
+  File "/usr/local/lib/python3.12/site-packages/sklearn/utils/validation.py", line 120, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/usr/local/lib/python3.12/site-packages/sklearn/utils/validation.py", line 169, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input contains NaN.
+(80016, 36) (240, 35)
+opponent_pokemon        2509
+opponent_type           2450
+move_used               2388
+move_type               2570
+move_category           2488
+weather_condition       2287
+pikachu_status         64526
+terrain_type           48721
+held_item              25726
+pikachu_ability         2516
+opponent_level          2613
+pikachu_level           2347
+move_power              2341
+attack_stat             2465
+defense_stat            2417
+sp_attack_stat          2359
+sp_defense_stat         2290
+speed_stat_pikachu      2393
+speed_stat_opponent     2426
+attack_stage            2488
+defense_stage           2331
+speed_stage             2398
+type_effectiveness      2473
+critical_hit            2392
+move_hit                2572
+friendship_level        2396
+experience_points       2317
+healing_applied         2459
+damage_dealt            2445
+previous_hp             2279
+max_hp                  2357
+dtype: int64
+opponent_pokemon         8
+opponent_type            5
+move_used                3
+move_type                5
+move_category            9
+weather_condition        6
+pikachu_status         185
+terrain_type           143
+held_item               79
+pikachu_ability          4
+opponent_level           5
+pikachu_level           10
+move_power               7
+attack_stat              6
+defense_stat            11
+sp_attack_stat           4
+sp_defense_stat         10
+speed_stat_pikachu       7
+speed_stat_opponent      8
+attack_stage             3
+defense_stage            5
+speed_stage              3
+type_effectiveness       6
+critical_hit             3
+move_hit                 7
+friendship_level         6
+experience_points        6
+healing_applied          9
+damage_dealt             7
+previous_hp             11
+max_hp                   9
+dtype: int64
+target stats: count    80016.000000
+mean        25.988265
+std         24.015293
+min          0.000000
+25%          0.000000
+50%         22.000000
+75%         46.000000
+max         81.000000
+Name: pikachu_hp, dtype: float64
+[0m
+[0m$ [0mcd /work && python -c "
+import pandas as pd, numpy as np
+from sklearn.metrics import r2_score
+tr = pd.read_csv('/data/train.csv')
+tr['pred'] = tr.previous_hp - tr.damage_dealt + tr.healing_applied
+print(r2_score(tr.pikachu_hp.dropna(), tr.pred.dropna()))
+print('clip0 maxhp r2:', r2_score(tr.pikachu_hp, tr.pred.clip(0, tr.max_hp)))
+print('corr:', tr[['pikachu_hp','previous_hp','damage_dealt','healing_applied','max_hp']].corr()['pikachu_hp'])
+print('healing>0 rows:', (tr.healing_applied>0).sum(), 'damage>0:', (tr.damage_dealt>0).sum())
+print('damage==prev hp fraction:', ((tr.damage_dealt==tr.previous_hp)&(tr.previous_hp>0)).mean())
+"
+
+Traceback (most recent call last):
+  File "<string>", line 6, in <module>
+  File "/usr/local/lib/python3.12/site-packages/sklearn/utils/_param_validation.py", line 216, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sklearn/metrics/_regression.py", line 1257, in r2_score
+    _check_reg_targets_with_floating_dtype(
+  File "/usr/local/lib/python3.12/site-packages/sklearn/metrics/_regression.py", line 198, in _check_reg_targets_with_floating_dtype
+    y_type, y_true, y_pred, multioutput = _check_reg_targets(
+                                          ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sklearn/metrics/_regression.py", line 104, in _check_reg_targets
+    check_consistent_length(y_true, y_pred)
+  File "/usr/local/lib/python3.12/site-packages/sklearn/utils/validation.py", line 475, in check_consistent_length
+    raise ValueError(
+ValueError: Found input variables with inconsistent numbers of samples: [80016, 73022]
+[0m
+[0m$ [0mcd /work && python -c "
+import pandas as pd, numpy as np
+from sklearn.metrics import r2_score
+tr = pd.read_csv('/data/train.csv')
+pred = tr.previous_hp.fillna(0) - tr.damage_dealt.fillna(0) + tr.healing_applied.fillna(0)
+print('raw r2:', r2_score(tr.pikachu_hp, pred.clip(0, tr.max_hp.fillna(81))))
+print('clip0 maxhp r2:', r2_score(tr.pikachu_hp, pred.clip(0, tr.max_hp.fillna(81))))
+print('abs err median:', np.abs(pred.tr.pikachu_hp).median() if False else np.abs(pred-tr.pikachu_hp).median())
+print('exact match:', (pred.round()==tr.pikachu_hp).mean())
+"
+
+raw r2: 0.3595371384922307
+clip0 maxhp r2: 0.3595371384922307
+abs err median: 17.0
+exact match: 0.04820285942811438
+[0m
+Baseline physics formula is weak (R2 0.36) due to missingness. Building an LGBM model with all features:
+[0m← [0mWrite train.py
+Wrote file successfully.
+[0m
+[0m$ [0mcd /work && python train.py
+Traceback (most recent call last):
+  File "/work/train.py", line 40, in <module>
+    m.fit(X.iloc[tr_idx], y.iloc[tr_idx], categorical_feature=CAT,
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/sklearn.py", line 1398, in fit
+    super().fit(
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/sklearn.py", line 1049, in fit
+    self._Booster = train(
+                    ^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/engine.py", line 297, in train
+    booster = Booster(params=params, train_set=train_set)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 3656, in __init__
+    train_set.construct()
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 2590, in construct
+    self._lazy_init(
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 2123, in _lazy_init
+    data, feature_name, categorical_feature, self.pandas_categorical = _data_from_pandas(
+                                                                       ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 868, in _data_from_pandas
+    _pandas_to_numpy(data, target_dtype=target_dtype),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 814, in _pandas_to_numpy
+    _check_for_bad_pandas_dtypes(data.dtypes)
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 805, in _check_for_bad_pandas_dtypes
+    raise ValueError(
+ValueError: pandas dtypes must be int, float or bool.
+Fields with bad pandas dtypes: opponent_pokemon: object, opponent_type: object, move_used: object, move_type: object, move_category: object, weather_condition: object, pikachu_status: object, terrain_type: object, held_item: object, pikachu_ability: object
+[0m
+[0m← [0mEdit train.py
+Index: /work/train.py
+===================================================================
+--- /work/train.py
++++ /work/train.py
+@@ -11,10 +11,10 @@
+        'weather_condition','pikachu_status','terrain_type','held_item','pikachu_ability']
+ NUM = [c for c in tr.columns if c not in CAT+['battle_turn','pikachu_hp','round','turn']]
+ 
+ for c in CAT:
+-    tr[c] = tr[c].astype(str).fillna('missing')
+-    te[c] = te[c].astype(str).fillna('missing')
++    tr[c] = tr[c].astype(str).fillna('missing').astype('category')
++    te[c] = te[c].astype(str).fillna('missing').astype('category')
+ 
+ for c in NUM:
+     tr[c] = tr[c].fillna(tr[c].median())
+     te[c] = te[c].fillna(tr[c].median())
+
+[0m
+[0m$ [0mcd /work && python train.py
+Training until validation scores don't improve for 100 rounds
+Early stopping, best iteration is:
+[124]	valid_0's rmse: 4.18615
+0 0.9697079685536244
+Training until validation scores don't improve for 100 rounds
+Early stopping, best iteration is:
+[129]	valid_0's rmse: 4.25551
+1 0.9685009442027525
+Training until validation scores don't improve for 100 rounds
+Early stopping, best iteration is:
+[140]	valid_0's rmse: 4.26689
+2 0.9686060446391381
+Training until validation scores don't improve for 100 rounds
+Early stopping, best iteration is:
+[120]	valid_0's rmse: 4.2719
+3 0.968324637109633
+Training until validation scores don't improve for 100 rounds
+Early stopping, best iteration is:
+[163]	valid_0's rmse: 4.25109
+4 0.968515456704774
+OOF R2: 0.9687337598604207
+               battle_turn  pikachu_hp
+0  Round 1828 - Turn 00:00   48.368715
+1  Round 1828 - Turn 01:00   52.792923
+2  Round 1828 - Turn 02:00   29.496148
+3  Round 1828 - Turn 03:00   23.588152
+4  Round 1828 - Turn 04:00   14.195322
+pred range 0.5692064840589763 78.49228457514174
+[0m
+R2 ≈ 0.969 OOF. Verifying submission format matches sample exactly:
+[0m$ [0mcd /work && python -c "
+import pandas as pd
+sub = pd.read_csv('submission.csv')
+sam = pd.read_csv('/data/sample_submission.csv')
+print(sub.shape, sam.shape)
+print(list(sub.columns)==list(sam.columns))
+print((sub.battle_turn.values==sam.battle_turn.values).all())
+print(sub.dtypes)
+print(sub.pikachu_hp.isnull().sum())
+"
+(240, 2) (240, 2)
+True
+True
+battle_turn     object
+pikachu_hp     float64
+dtype: object
+0
+[0m
+Submission written to `/work/submission.csv` — matches sample format (same columns, same 240 ids, no missing values). CV R2 ≈ 0.969 using LightGBM with categorical features, median imputation, and hp-ratio/net-change features.
