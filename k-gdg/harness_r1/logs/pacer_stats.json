@@ -1,0 +1,1 @@
+{"lane": "kaggle", "budget": 120, "attempts": 25, "ok": 25, "http_429": 0, "http_5xx": 0, "errors": 0, "prompt_tokens": 482189, "completion_tokens": 14732, "started": 1794079807.9583912, "in_window": 25}
