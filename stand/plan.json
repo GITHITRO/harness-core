@@ -35,7 +35,7 @@
  },
  "kaggle": {
   "enabled": true,
-  "stage": "k-dry",
+  "stage": "k-dry2",
   "slug": "playground-series-s6e10",
   "arms": "base,harness",
   "repeats": 1,

@@ -65,6 +65,7 @@ def main():
     ap.add_argument("--calls", type=int, default=150)
     ap.add_argument("--data", required=True)
     a = ap.parse_args()
+    a.stage_dir, a.data = os.path.abspath(a.stage_dir), os.path.abspath(a.data)   # docker -v needs absolute paths
     os.makedirs(a.stage_dir, exist_ok=True)
     res = os.path.join(a.stage_dir, "results.jsonl")
     rows = [json.loads(l) for l in open(res)] if os.path.exists(res) else []
