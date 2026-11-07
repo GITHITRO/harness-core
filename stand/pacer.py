@@ -112,7 +112,16 @@ def forward(bench, arm, subpath, body_bytes):
             try:
                 resp_json = json.loads(data)
             except ValueError:
-                resp_json = {"_raw": data.decode("utf-8", "replace")[:5000]}
+                # streaming (SSE): keep the whole stream and read usage from the last chunk that carries it
+                raw = data.decode("utf-8", "replace")
+                resp_json = {"_stream": raw[:400000]}
+                for line in raw.splitlines()[::-1]:
+                    if line.startswith("data:") and '"usage"' in line:
+                        try:
+                            resp_json["usage"] = json.loads(line[5:].strip()).get("usage")
+                            break
+                        except ValueError:
+                            pass
             usage = resp_json.get("usage") if isinstance(resp_json, dict) else None
             if status == 200 and usage:
                 _stats["prompt_tokens"] += usage.get("prompt_tokens") or 0

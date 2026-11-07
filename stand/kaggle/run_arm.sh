@@ -35,7 +35,7 @@ cat > "$OUT/opencode.json" <<EOF
     "models": {"$MODEL": {"name": "nemotron", "tool_call": true}}}},
   "model": "kilo/$MODEL", "small_model": "kilo/$MODEL",
   "mcp": {"arxiv": {"type": "remote", "url": "http://arxiv:8000/mcp", "enabled": true}},
-  "permission": {"webfetch": "deny", "websearch": "deny"}
+  "permission": {"webfetch": "deny", "websearch": "deny", "external_directory": "allow"}
 }
 EOF
 sleep 3
