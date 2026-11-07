@@ -1,0 +1,93 @@
+Cell values in the specified range are identical.
+   59511 u_nv_ask   correct=True q=0 rel=0 calls=1 
+   22-47 u_noask    correct=False q=0 rel=0 calls=1 
+   22-47 u_ask      correct=False q=0 rel=0 calls=1 
+   22-47 u_nv_ask   correct=False q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   45063 u_noask    correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   45063 u_ask      correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   45063 u_nv_ask   correct=True q=0 rel=0 calls=1 
+   53161 u_noask    correct=False q=0 rel=0 calls=1 
+   53161 u_ask      correct=False q=3 rel=1 calls=2 
+   53161 u_nv_ask   correct=False q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   51354 u_noask    correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   51354 u_ask      correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   51354 u_nv_ask   correct=True q=0 rel=0 calls=1 
+   50916 u_noask    correct=False q=0 rel=0 calls=1 
+   50916 u_ask      correct=False q=0 rel=0 calls=1 
+   50916 u_nv_ask   correct=False q=0 rel=0 calls=3 
+Cell values in the specified range are identical.
+  535-20 u_noask    correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+  535-20 u_ask      correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+  535-20 u_nv_ask   correct=True q=0 rel=0 calls=1 
+   55708 u_noask    correct=False q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   55708 u_ask      correct=True q=1 rel=1 calls=2 
+Cell values in the specified range are identical.
+   55708 u_nv_ask   correct=True q=3 rel=3 calls=2 
+   50088 u_noask    correct=False q=0 rel=0 calls=1 
+   50088 u_ask      correct=False q=0 rel=0 calls=1 
+   50088 u_nv_ask   correct=False q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   48921 u_noask    correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   48921 u_ask      correct=True q=2 rel=1 calls=2 
+Cell values in the specified range are identical.
+   48921 u_nv_ask   correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+  109-21 u_noask    correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+  109-21 u_ask      correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+  109-21 u_nv_ask   correct=True q=0 rel=0 calls=1 
+   45707 u_noask    correct=False q=0 rel=0 calls=1 
+   45707 u_ask      correct=False q=0 rel=0 calls=1 
+   45707 u_nv_ask   correct=False q=0 rel=0 calls=2 
+   53383 u_noask    correct=False q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   53383 u_ask      correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   53383 u_nv_ask   correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+Cell values in the specified range are identical.
+Cell values in the specified range are identical.
+  156-14 u_noask    correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+Cell values in the specified range are identical.
+Cell values in the specified range are identical.
+  156-14 u_ask      correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+Cell values in the specified range are identical.
+Cell values in the specified range are identical.
+  156-14 u_nv_ask   correct=True q=0 rel=0 calls=1 
+   44266 u_noask    correct=False q=0 rel=0 calls=1 
+   44266 u_ask      correct=False q=0 rel=0 calls=1 
+   44266 u_nv_ask   correct=False q=0 rel=0 calls=1 
+   58109 u_noask    correct=False q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   58109 u_ask      correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+   58109 u_nv_ask   correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+  209-30 u_noask    correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+  209-30 u_ask      correct=True q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+  209-30 u_nv_ask   correct=True q=0 rel=0 calls=1 
+   46646 u_noask    correct=False q=0 rel=0 calls=1 
+   46646 u_ask      correct=False q=3 rel=2 calls=2 
+   46646 u_nv_ask   correct=False q=3 rel=1 calls=2 
+Cell values in the specified range are identical.
+  448-11 u_noask    correct=True q=0 rel=0 calls=1 
+  448-11 u_ask      correct=False q=0 rel=0 calls=1 
+Cell values in the specified range are identical.
+  448-11 u_nv_ask   correct=True q=0 rel=0 calls=2 
+   51262 u_noask    correct=False q=0 rel=0 calls=1 
+{"valid_variants": 89, "rejected": 4, "u_noask": {"n": 89, "correct": 40, "accuracy": 0.449, "questions_per_task": 0.0, "question_precision": null, "calls_per_task": 1.0}, "u_ask": {"n": 88, "correct": 40, "accuracy": 0.455, "questions_per_task": 0.19, "question_precision": 0.59, "calls_per_task": 1.18}, "u_nv_ask": {"n": 88, "correct": 45, "accuracy": 0.511, "questions_per_task": 0.09, "question_precision": 0.5, "calls_per_task": 1.31}}
