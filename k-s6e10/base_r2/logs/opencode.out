@@ -1,0 +1,352 @@
+[0m
+> build · nvidia/nemotron-3.5-super-vl:free
+[0m
+timestamp=2026-11-07T17:39:49.152Z level=WARN run=41d18427 message="server unavailable" key=arxiv type=remote status=failed
+timestamp=2026-11-07T17:39:49.575Z level=ERROR run=41d18427 message="Failed to fetch models.dev" cause="Cause([Fail(HttpClientError: Transport error (GET https://models.opencode.ai/api.json) (cause: TypeError: getaddrinfo EAI_AGAIN models.opencode.ai))])"
+[0m$ [0mls -la /data /work 2>&1 | head -50
+/data:
+total 100160
+drwxr-xr-x 2 1001 1001     4096 Nov  7 17:39 .
+drwxr-xr-x 1 root root     4096 Nov  7 17:39 ..
+-rw-r--r-- 1 1001 1001     1710 Nov  7 17:39 TASK.md
+-rw-r--r-- 1 1001 1001      223 Nov  7 17:39 meta.json
+-rw-r--r-- 1 1001 1001  8095804 Nov  7 17:39 sample_submission.csv
+-rw-r--r-- 1 1001 1001 27200964 Nov  7 17:39 test.csv
+-rw-r--r-- 1 1001 1001 67245068 Nov  7 17:39 train.csv
+
+/work:
+total 12
+drwxrwxrwx 2  1001  1001 4096 Nov  7 17:39 .
+drwxr-xr-x 1 root  root  4096 Nov  7 17:39 ..
+-rw-r--r-- 1 agent agent  435 Nov  7 17:39 .run.out
+[0m
+[0m$ [0mhead -5 /data/train.csv && echo "---" && head -5 /data/sample_submission.csv && echo "---" && wc -l /data/train.csv /data/test.csv /data/sample_submission.csv
+id,Age,Flight Distance,Inflight wifi service,Departure/Arrival time convenient,Ease of Online booking,Gate location,Food and drink,Online boarding,Seat comfort,Inflight entertainment,On-board service,Leg room service,Baggage handling,Checkin service,Cleanliness,Departure Delay in Minutes,Arrival Delay in Minutes,Gender,Customer Type,Type of Travel,Class,satisfaction
+0,36,694,4,4,4,3,1,4,1,1,3,4,4,3,1,0,0.0,Female,Loyal Customer,Personal Travel,Eco,False
+1,56,651,5,5,5,5,5,4,4,5,5,5,5,4,3,0,0.0,Male,Loyal Customer,Business travel,Business,True
+2,31,1371,3,4,2,5,3,3,3,3,4,3,4,5,3,0,0.0,Female,Loyal Customer,Personal Travel,Eco,False
+3,10,1616,3,5,3,3,3,3,3,3,4,5,3,4,3,0,0.0,Male,Loyal Customer,Personal Travel,Eco,False
+---
+id,satisfaction
+699635,0.44357272006117476
+699636,0.44357272006117476
+699637,0.44357272006117476
+699638,0.44357272006117476
+---
+   699636 /data/train.csv
+   299845 /data/test.csv
+   299845 /data/sample_submission.csv
+  1299326 total
+[0m
+[0m→ [0mRead /data/TASK.md
+[0m→ [0mRead /data/meta.json
+[0m
+[0m$ [0mcd /work && python -c "
+import pandas as pd
+tr = pd.read_csv('/data/train.csv')
+te = pd.read_csv('/data/test.csv')
+print(tr.shape, te.shape)
+print(tr.isna().sum()[tr.isna().sum()>0])
+print(te.isna().sum()[te.isna().sum()>0])
+print(tr['satisfaction'].value_counts())
+print(tr.dtypes)
+"
+(699635, 23) (299844, 22)
+Arrival Delay in Minutes    292
+dtype: int64
+Arrival Delay in Minutes    130
+dtype: int64
+satisfaction
+False    389296
+True     310339
+Name: count, dtype: int64
+id                                     int64
+Age                                    int64
+Flight Distance                        int64
+Inflight wifi service                  int64
+Departure/Arrival time convenient      int64
+Ease of Online booking                 int64
+Gate location                          int64
+Food and drink                         int64
+Online boarding                        int64
+Seat comfort                           int64
+Inflight entertainment                 int64
+On-board service                       int64
+Leg room service                       int64
+Baggage handling                       int64
+Checkin service                        int64
+Cleanliness                            int64
+Departure Delay in Minutes             int64
+Arrival Delay in Minutes             float64
+Gender                                object
+Customer Type                         object
+Type of Travel                        object
+Class                                 object
+satisfaction                            bool
+dtype: object
+[0m
+[0m← [0mWrite train.py
+Wrote file successfully.
+[0m
+[0m$ [0mcd /work && python -c "
+import pandas as pd
+te = pd.read_csv('/data/test.csv')
+sub = pd.read_csv('/data/sample_submission.csv')
+print((te['id'].values == sub['id'].values).all())
+print(te['id'].head(), sub['id'].head())
+" && python train.py
+True
+0    699635
+1    699636
+2    699637
+3    699638
+4    699639
+Name: id, dtype: int64 0    699635
+1    699636
+2    699637
+3    699638
+4    699639
+Name: id, dtype: int64
+Traceback (most recent call last):
+  File "/work/train.py", line 74, in <module>
+    m.fit(Xtr, ytr, eval_set=[(Xval, yval)], eval_metric='auc',
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/sklearn.py", line 1560, in fit
+    super().fit(
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/sklearn.py", line 1049, in fit
+    self._Booster = train(
+                    ^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/engine.py", line 297, in train
+    booster = Booster(params=params, train_set=train_set)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 3656, in __init__
+    train_set.construct()
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 2590, in construct
+    self._lazy_init(
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 2123, in _lazy_init
+    data, feature_name, categorical_feature, self.pandas_categorical = _data_from_pandas(
+                                                                       ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 868, in _data_from_pandas
+    _pandas_to_numpy(data, target_dtype=target_dtype),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 814, in _pandas_to_numpy
+    _check_for_bad_pandas_dtypes(data.dtypes)
+  File "/usr/local/lib/python3.12/site-packages/lightgbm/basic.py", line 805, in _check_for_bad_pandas_dtypes
+    raise ValueError(
+ValueError: pandas dtypes must be int, float or bool.
+Fields with bad pandas dtypes: Gender: object, Customer Type: object, Type of Travel: object, Class: object
+[0m
+[0m← [0mEdit train.py
+Index: /work/train.py
+===================================================================
+--- /work/train.py
++++ /work/train.py
+@@ -41,11 +41,13 @@
+                             'Checkin service', 'Cleanliness']].min(axis=1)
+ 
+ FEATS = NUMS + ['total_delay', 'delay_diff', 'delay_per_dist', 'is_delayed', 'avg_service', 'min_service'] + CATS
+ 
+-X = tr[FEATS]
++X = tr[FEATS].copy()
++X[CATS] = X[CATS].astype('category')
+ y = tr['satisfaction'].astype(int)
+-Xt = te[FEATS]
++Xt = te[FEATS].copy()
++Xt[CATS] = Xt[CATS].astype('category')
+ 
+ params = {
+     'objective': 'binary',
+     'metric': 'auc',
+
+[0m
+[0m$ [0mcd /work && python train.py
+fold 0 auc: 0.95904
+fold 1 auc: 0.95779
+fold 2 auc: 0.95950
+fold 3 auc: 0.95880
+fold 4 auc: 0.95914
+CV mean auc: 0.95886 +/- 0.00058
+OOF auc: 0.95885
+saved /work/submission.csv (299844, 2) count    299844.000000
+mean          0.443503
+std           0.432305
+min           0.001401
+25%           0.034650
+50%           0.173855
+75%           0.947503
+max           0.997891
+Name: satisfaction, dtype: float64
+[0m
+CV AUC ≈ 0.9589. Let me quickly tune with Optuna to squeeze more, then retrain on full data.
+[0m← [0mWrite tune.py
+Wrote file successfully.
+[0m
+[0m$ [0mcd /work && python tune.py
+File "/work/tune.py", line 26
+    df['min_service'] = df[svc].min(axis=1]
+                                          ^
+SyntaxError: closing parenthesis ']' does not match opening parenthesis '('
+[0m
+[0m← [0mEdit tune.py
+Index: /work/tune.py
+===================================================================
+--- /work/tune.py
++++ /work/tune.py
+@@ -22,9 +22,9 @@
+     svc = ['Inflight wifi service', 'Departure/Arrival time convenient', 'Ease of Online booking',
+            'Gate location', 'Food and drink', 'Online boarding', 'Seat comfort', 'Inflight entertainment',
+            'On-board service', 'Leg room service', 'Baggage handling', 'Checkin service', 'Cleanliness']
+     df['avg_service'] = df[svc].mean(axis=1)
+-    df['min_service'] = df[svc].min(axis=1]
++    df['min_service'] = df[svc].min(axis=1)
+ 
+ FEATS = NUMS + ['total_delay', 'delay_diff', 'delay_per_dist', 'is_delayed', 'avg_service', 'min_service'] + CATS
+ X = tr[FEATS].copy(); X[CATS] = X[CATS].astype('category')
+ y = tr['satisfaction'].astype(int)
+
+[0m
+[0m$ [0mcd /work && python tune.py
+[I 2026-11-07 17:43:47,035] A new study created in memory with name: no-name-e1d9084c-41d8-485c-a0ad-bad637046acd
+  0%|          | 0/30 [00:00<?, ?it/s]                                        0%|          | 0/30 [01:11<?, ?it/s]Best trial: 0. Best value: 0.958651:   0%|          | 0/30 [01:11<?, ?it/s]Best trial: 0. Best value: 0.958651:   3%|▎         | 1/30 [01:11<34:22, 71.12s/it]                                                                                   Best trial: 0. Best value: 0.958651:   3%|▎         | 1/30 [01:37<34:22, 71.12s/it]Best trial: 0. Best value: 0.958651:   3%|▎         | 1/30 [01:37<34:22, 71.12s/it]Best trial: 0. Best value: 0.958651:   7%|▋         | 2/30 [01:37<20:57, 44.89s/it]                                                                                   Best trial: 0. Best value: 0.958651:   7%|▋         | 2/30 [02:45<20:57, 44.89s/it]Best trial: 2. Best value: 0.958787:   7%|▋         | 2/30 [02:45<20:57, 44.89s/it]Best trial: 2. Best value: 0.958787:  10%|█         | 3/30 [02:45<24:51, 55.23s/it]                                                                                   Best trial: 2. Best value: 0.958787:  10%|█         | 3/30 [03:27<24:51, 55.23s/it]Best trial: 2. Best value: 0.958787:  10%|█         | 3/30 [03:27<24:51, 55.23s/it]Best trial: 2. Best value: 0.958787:  13%|█▎        | 4/30 [03:27<21:39, 49.99s/it]                                                                                   Best trial: 2. Best value: 0.958787:  13%|█▎        | 4/30 [04:39<21:39, 49.99s/it]Best trial: 2. Best value: 0.958787:  13%|█▎        | 4/30 [04:39<21:39, 49.99s/it]Best trial: 2. Best value: 0.958787:  17%|█▋        | 5/30 [04:39<24:13, 58.12s/it]                                                                                   Best trial: 2. Best value: 0.958787:  17%|█▋        | 5/30 [06:53<24:13, 58.12s/it]Best trial: 2. Best value: 0.958787:  17%|█▋        | 5/30 [06:53<24:13, 58.12s/it]Best trial: 2. Best value: 0.958787:  20%|██        | 6/30 [06:53<33:31, 83.80s/it]                                                                                   Best trial: 2. Best value: 0.958787:  20%|██        | 6/30 [07:50<33:31, 83.80s/it]Best trial: 2. Best value: 0.958787:  20%|██        | 6/30 [07:50<33:31, 83.80s/it]Best trial: 2. Best value: 0.958787:  23%|██▎       | 7/30 [07:50<28:46, 75.08s/it]                                                                                   Best trial: 2. Best value: 0.958787:  23%|██▎       | 7/30 [11:21<28:46, 75.08s/it]Best trial: 2. Best value: 0.958787:  23%|██▎       | 7/30 [11:21<28:46, 75.08s/it]Best trial: 2. Best value: 0.958787:  27%|██▋       | 8/30 [11:21<43:23, 118.35s/it]                                                                                    Best trial: 2. Best value: 0.958787:  27%|██▋       | 8/30 [11:56<43:23, 118.35s/it]Best trial: 2. Best value: 0.958787:  27%|██▋       | 8/30 [11:56<43:23, 118.35s/it]Best trial: 2. Best value: 0.958787:  30%|███       | 9/30 [11:56<32:20, 92.40s/it]                                                                                    Best trial: 2. Best value: 0.958787:  30%|███       | 9/30 [15:15<32:20, 92.40s/it]Best trial: 2. Best value: 0.958787:  30%|███       | 9/30 [15:15<32:20, 92.40s/it]Best trial: 2. Best value: 0.958787:  33%|███▎      | 10/30 [15:15<41:42, 125.10s/it]                                                                                     Best trial: 2. Best value: 0.958787:  33%|███▎      | 10/30 [17:11<41:42, 125.10s/it]Best trial: 10. Best value: 0.958852:  33%|███▎      | 10/30 [17:11<41:42, 125.10s/it]Best trial: 10. Best value: 0.958852:  37%|███▋      | 11/30 [17:11<38:44, 122.35s/it]                                                                                      Best trial: 10. Best value: 0.958852:  37%|███▋      | 11/30 [19:10<38:44, 122.35s/it]Best trial: 10. Best value: 0.958852:  37%|███▋      | 11/30 [19:10<38:44, 122.35s/it]Best trial: 10. Best value: 0.958852:  40%|████      | 12/30 [19:10<36:26, 121.49s/it]                                                                                      Best trial: 10. Best value: 0.958852:  40%|████      | 12/30 [21:14<36:26, 121.49s/it]Best trial: 10. Best value: 0.958852:  40%|████      | 12/30 [21:14<36:26, 121.49s/it]Best trial: 10. Best value: 0.958852:  43%|████▎     | 13/30 [21:14<34:37, 122.20s/it]                                                                                      Best trial: 10. Best value: 0.958852:  43%|████▎     | 13/30 [22:46<34:37, 122.20s/it]Best trial: 10. Best value: 0.958852:  43%|████▎     | 13/30 [22:46<34:37, 122.20s/it]Best trial: 10. Best value: 0.958852:  47%|████▋     | 14/30 [22:46<30:07, 112.94s/it]                                                                                      Best trial: 10. Best value: 0.958852:  47%|████▋     | 14/30 [24:44<30:07, 112.94s/it]Best trial: 14. Best value: 0.958865:  47%|████▋     | 14/30 [24:44<30:07, 112.94s/it]Best trial: 14. Best value: 0.958865:  50%|█████     | 15/30 [24:44<28:36, 114.45s/it]                                                                                      Best trial: 14. Best value: 0.958865:  50%|█████     | 15/30 [26:40<28:36, 114.45s/it]Best trial: 14. Best value: 0.958865:  50%|█████     | 15/30 [26:40<28:36, 114.45s/it]Best trial: 14. Best value: 0.958865:  53%|█████▎    | 16/30 [26:40<26:49, 114.99s/it]                                                                                      Best trial: 14. Best value: 0.958865:  53%|█████▎    | 16/30 [27:37<26:49, 114.99s/it]Best trial: 14. Best value: 0.958865:  53%|█████▎    | 16/30 [27:37<26:49, 114.99s/it]Best trial: 14. Best value: 0.958865:  57%|█████▋    | 17/30 [27:37<21:09, 97.63s/it]                                                                                      Best trial: 14. Best value: 0.958865:  57%|█████▋    | 17/30 [30:23<21:09, 97.63s/it]Best trial: 17. Best value: 0.958942:  57%|█████▋    | 17/30 [30:23<21:09, 97.63s/it]Best trial: 17. Best value: 0.958942:  60%|██████    | 18/30 [30:23<23:36, 118.04s/it]                                                                                      Best trial: 17. Best value: 0.958942:  60%|██████    | 18/30 [33:14<23:36, 118.04s/it]Best trial: 17. Best value: 0.958942:  60%|██████    | 18/30 [33:14<23:36, 118.04s/it]Best trial: 17. Best value: 0.958942:  63%|██████▎   | 19/30 [33:14<24:34, 134.01s/it]                                                                                      Best trial: 17. Best value: 0.958942:  63%|██████▎   | 19/30 [38:22<24:34, 134.01s/it]Best trial: 17. Best value: 0.958942:  63%|██████▎   | 19/30 [38:22<24:34, 134.01s/it]Best trial: 17. Best value: 0.958942:  67%|██████▋   | 20/30 [38:22<31:04, 186.44s/it]                                                                                      Best trial: 17. Best value: 0.958942:  67%|██████▋   | 20/30 [40:38<31:04, 186.44s/it]Best trial: 17. Best value: 0.958942:  67%|██████▋   | 20/30 [40:38<31:04, 186.44s/it]Best trial: 17. Best value: 0.958942:  70%|███████   | 21/30 [40:38<25:40, 171.20s/it][I 2026-11-07 17:44:58,156] Trial 0 finished with value: 0.9586509466088143 and parameters: {'learning_rate': 0.04437190850821738, 'num_leaves': 69, 'min_child_samples': 65, 'feature_fraction': 0.6698486925673027, 'bagging_fraction': 0.7049119199143185, 'bagging_freq': 2, 'lambda_l1': 0.0045089792770440194, 'lambda_l2': 0.08459556989706894}. Best is trial 0 with value: 0.9586509466088143.
+[I 2026-11-07 17:45:24,691] Trial 1 finished with value: 0.9582792342149279 and parameters: {'learning_rate': 0.07709820643013672, 'num_leaves': 79, 'min_child_samples': 87, 'feature_fraction': 0.9618852902873414, 'bagging_fraction': 0.6467446805125282, 'bagging_freq': 8, 'lambda_l1': 0.0019095310576679693, 'lambda_l2': 0.0023374652685781458}. Best is trial 0 with value: 0.9586509466088143.
+[I 2026-11-07 17:46:32,230] Trial 2 finished with value: 0.9587871266870304 and parameters: {'learning_rate': 0.04622508629891922, 'num_leaves': 86, 'min_child_samples': 54, 'feature_fraction': 0.658802456918218, 'bagging_fraction': 0.756200478708078, 'bagging_freq': 4, 'lambda_l1': 3.897068464463188, 'lambda_l2': 0.005458618656269024}. Best is trial 2 with value: 0.9587871266870304.
+[I 2026-11-07 17:47:14,178] Trial 3 finished with value: 0.9583877229708886 and parameters: {'learning_rate': 0.06508587282645294, 'num_leaves': 51, 'min_child_samples': 63, 'feature_fraction': 0.6492083201377401, 'bagging_fraction': 0.6136402726940268, 'bagging_freq': 9, 'lambda_l1': 0.1004016820304037, 'lambda_l2': 0.0018290616898155821}. Best is trial 2 with value: 0.9587871266870304.
+[I 2026-11-07 17:48:26,719] Trial 4 finished with value: 0.9586994874388317 and parameters: {'learning_rate': 0.03890622800965563, 'num_leaves': 63, 'min_child_samples': 46, 'feature_fraction': 0.7858538589656427, 'bagging_fraction': 0.6266369474103766, 'bagging_freq': 2, 'lambda_l1': 0.006215669860901344, 'lambda_l2': 2.653023908849241}. Best is trial 2 with value: 0.9587871266870304.
+[I 2026-11-07 17:50:40,378] Trial 5 finished with value: 0.9586700118208853 and parameters: {'learning_rate': 0.019000022644133505, 'num_leaves': 49, 'min_child_samples': 46, 'feature_fraction': 0.7138341857334316, 'bagging_fraction': 0.8336332812037988, 'bagging_freq': 4, 'lambda_l1': 0.002856893765551065, 'lambda_l2': 0.037535124999955684}. Best is trial 2 with value: 0.9587871266870304.
+[I 2026-11-07 17:51:37,486] Trial 6 finished with value: 0.9587676226105728 and parameters: {'learning_rate': 0.05017344580792795, 'num_leaves': 114, 'min_child_samples': 90, 'feature_fraction': 0.6026966126292346, 'bagging_fraction': 0.993985654825117, 'bagging_freq': 2, 'lambda_l1': 0.79222352380209, 'lambda_l2': 0.013667225812049226}. Best is trial 2 with value: 0.9587871266870304.
+[I 2026-11-07 17:55:08,493] Trial 7 finished with value: 0.9586108722491907 and parameters: {'learning_rate': 0.01194959014852137, 'num_leaves': 44, 'min_child_samples': 30, 'feature_fraction': 0.8223910864615376, 'bagging_fraction': 0.9544401643529713, 'bagging_freq': 1, 'lambda_l1': 0.0029908069640447264, 'lambda_l2': 0.010160356175171225}. Best is trial 2 with value: 0.9587871266870304.
+[I 2026-11-07 17:55:43,848] Trial 8 finished with value: 0.9584870940950868 and parameters: {'learning_rate': 0.05145053485634022, 'num_leaves': 102, 'min_child_samples': 39, 'feature_fraction': 0.9478201792720324, 'bagging_fraction': 0.7221673112931547, 'bagging_freq': 7, 'lambda_l1': 0.026113597384128773, 'lambda_l2': 0.16864641583918508}. Best is trial 2 with value: 0.9587871266870304.
+[I 2026-11-07 17:59:02,164] Trial 9 finished with value: 0.9587715014512351 and parameters: {'learning_rate': 0.011915653807131315, 'num_leaves': 48, 'min_child_samples': 34, 'feature_fraction': 0.7737127247531146, 'bagging_fraction': 0.7069726027476697, 'bagging_freq': 10, 'lambda_l1': 3.8651421086328006, 'lambda_l2': 0.018981881046064557}. Best is trial 2 with value: 0.9587871266870304.
+[I 2026-11-07 18:00:58,266] Trial 10 finished with value: 0.9588518300150014 and parameters: {'learning_rate': 0.025597137326582035, 'num_leaves': 92, 'min_child_samples': 75, 'feature_fraction': 0.8747122797838317, 'bagging_fraction': 0.8440195485723626, 'bagging_freq': 5, 'lambda_l1': 8.476485379499202, 'lambda_l2': 0.79562042210409}. Best is trial 10 with value: 0.9588518300150014.
+[I 2026-11-07 18:02:57,801] Trial 11 finished with value: 0.9588165272205211 and parameters: {'learning_rate': 0.025201477499281536, 'num_leaves': 91, 'min_child_samples': 76, 'feature_fraction': 0.8833103867537344, 'bagging_fraction': 0.8422311315149771, 'bagging_freq': 5, 'lambda_l1': 9.357174407085457, 'lambda_l2': 0.9368703240445895}. Best is trial 10 with value: 0.9588518300150014.
+[I 2026-11-07 18:05:01,639] Trial 12 finished with value: 0.9588495130445843 and parameters: {'learning_rate': 0.02361556964187389, 'num_leaves': 96, 'min_child_samples': 78, 'feature_fraction': 0.87591588288227, 'bagging_fraction': 0.8702994445362119, 'bagging_freq': 6, 'lambda_l1': 9.515884235744368, 'lambda_l2': 1.255086626171005}. Best is trial 10 with value: 0.9588518300150014.
+[I 2026-11-07 18:06:33,170] Trial 13 finished with value: 0.9588398004121905 and parameters: {'learning_rate': 0.023209816407663123, 'num_leaves': 124, 'min_child_samples': 99, 'feature_fraction': 0.8769333705794207, 'bagging_fraction': 0.8922652842377371, 'bagging_freq': 6, 'lambda_l1': 0.6681060663764022, 'lambda_l2': 7.686328927902136}. Best is trial 10 with value: 0.9588518300150014.
+[I 2026-11-07 18:08:31,128] Trial 14 finished with value: 0.9588654006148555 and parameters: {'learning_rate': 0.016664391686293176, 'num_leaves': 101, 'min_child_samples': 75, 'feature_fraction': 0.8913988239004338, 'bagging_fraction': 0.9047575240844302, 'bagging_freq': 5, 'lambda_l1': 0.9566856359087738, 'lambda_l2': 0.4892731081093707}. Best is trial 14 with value: 0.9588654006148555.
+[I 2026-11-07 18:10:27,375] Trial 15 finished with value: 0.9587917868419268 and parameters: {'learning_rate': 0.015781919117915915, 'num_leaves': 107, 'min_child_samples': 20, 'feature_fraction': 0.922126071530664, 'bagging_fraction': 0.9213534054274751, 'bagging_freq': 4, 'lambda_l1': 0.5181950287250401, 'lambda_l2': 0.3612910693484231}. Best is trial 14 with value: 0.9588654006148555.
+[I 2026-11-07 18:11:24,623] Trial 16 finished with value: 0.9586737883715729 and parameters: {'learning_rate': 0.03156132673009301, 'num_leaves': 126, 'min_child_samples': 73, 'feature_fraction': 0.9841020998049552, 'bagging_fraction': 0.7944204815257004, 'bagging_freq': 5, 'lambda_l1': 0.22236200779087376, 'lambda_l2': 0.3530440618627477}. Best is trial 14 with value: 0.9588654006148555.
+[I 2026-11-07 18:14:10,173] Trial 17 finished with value: 0.9589420265442588 and parameters: {'learning_rate': 0.015286327368315217, 'num_leaves': 112, 'min_child_samples': 84, 'feature_fraction': 0.8268177286862075, 'bagging_fraction': 0.9234623681926393, 'bagging_freq': 7, 'lambda_l1': 1.9555812791731966, 'lambda_l2': 8.56231034309621}. Best is trial 17 with value: 0.9589420265442588.
+[I 2026-11-07 18:17:01,375] Trial 18 finished with value: 0.9589128786348877 and parameters: {'learning_rate': 0.014222502425300529, 'num_leaves': 113, 'min_child_samples': 87, 'feature_fraction': 0.8241848724150158, 'bagging_fraction': 0.9533034510536489, 'bagging_freq': 8, 'lambda_l1': 1.4467373555708893, 'lambda_l2': 9.636592341503667}. Best is trial 17 with value: 0.9589420265442588.
+[I 2026-11-07 18:22:10,015] Trial 19 finished with value: 0.9586386883366252 and parameters: {'learning_rate': 0.010261220047361621, 'num_leaves': 32, 'min_child_samples': 98, 'feature_fraction': 0.8181286462093662, 'bagging_fraction': 0.9966515563034308, 'bagging_freq': 8, 'lambda_l1': 2.0950586082825158, 'lambda_l2': 8.322133107603111}. Best is trial 17 with value: 0.9589420265442588.
+[I 2026-11-07 18:24:25,687] Trial 20 finished with value: 0.9588844428924723 and parameters: {'learning_rate': 0.01355098764104549, 'num_leaves': 115, 'min_child_samples': 88, 'feature_fraction': 0.7579264870053464, 'bagging_fraction': 0.9519523004258661, 'bagging_freq': 10, 'lambda_l1': 0.02850706438417183, 'lambda_l2': 2.8229472669473528}. Best is trial 17 with value: 0.9589420265442588.                                                                                      Best trial: 17. Best value: 0.958942:  70%|███████   | 21/30 [43:07<25:40, 171.20s/it]Best trial: 17. Best value: 0.958942:  70%|███████   | 21/30 [43:07<25:40, 171.20s/it]Best trial: 17. Best value: 0.958942:  73%|███████▎  | 22/30 [43:07<21:56, 164.61s/it]                                                                                      Best trial: 17. Best value: 0.958942:  73%|███████▎  | 22/30 [45:02<21:56, 164.61s/it]Best trial: 17. Best value: 0.958942:  73%|███████▎  | 22/30 [45:02<21:56, 164.61s/it]Best trial: 17. Best value: 0.958942:  77%|███████▋  | 23/30 [45:02<17:26, 149.52s/it]                                                                                      Best trial: 17. Best value: 0.958942:  77%|███████▋  | 23/30 [46:54<17:26, 149.52s/it]Best trial: 17. Best value: 0.958942:  77%|███████▋  | 23/30 [46:54<17:26, 149.52s/it]Best trial: 17. Best value: 0.958942:  80%|████████  | 24/30 [46:54<13:49, 138.23s/it]                                                                                      Best trial: 17. Best value: 0.958942:  80%|████████  | 24/30 [49:07<13:49, 138.23s/it]Best trial: 17. Best value: 0.958942:  80%|████████  | 24/30 [49:07<13:49, 138.23s/it]Best trial: 17. Best value: 0.958942:  83%|████████▎ | 25/30 [49:07<11:24, 136.88s/it]
+
+<shell_metadata>
+shell tool terminated command after exceeding timeout 3000000 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.
+</shell_metadata>
+[0m
+Tuning gave only a marginal gain (0.95894 vs 0.95886 CV). Best params found. Now retrain on full data with an internal validation split for early stopping and write the submission.
+[0m← [0mEdit train.py
+Index: /work/train.py
+===================================================================
+--- /work/train.py
++++ /work/train.py
+@@ -50,16 +50,16 @@
+ 
+ params = {
+     'objective': 'binary',
+     'metric': 'auc',
+-    'learning_rate': 0.05,
+-    'num_leaves': 63,
+-    'min_child_samples': 50,
+-    'feature_fraction': 0.8,
+-    'bagging_fraction': 0.8,
+-    'bagging_freq': 5,
+-    'lambda_l1': 1.0,
+-    'lambda_l2': 2.0,
++    'learning_rate': 0.015286327368315217,
++    'num_leaves': 112,
++    'min_child_samples': 84,
++    'feature_fraction': 0.8268177286862075,
++    'bagging_fraction': 0.9234623681926393,
++    'bagging_freq': 7,
++    'lambda_l1': 1.9555812791731966,
++    'lambda_l2': 8.56231034309621,
+     'verbosity': -1,
+     'n_jobs': 4,
+     'seed': 42,
+ }
+@@ -71,22 +71,26 @@
+ 
+ for fold, (tr_idx, val_idx) in enumerate(folds.split(X, y)):
+     Xtr, Xval = X.iloc[tr_idx], X.iloc[val_idx]
+     ytr, yval = y.iloc[tr_idx], y.iloc[val_idx]
+-    m = lgb.LGBMClassifier(**params, n_estimators=2000)
++    m = lgb.LGBMClassifier(**params, n_estimometers if False else None) if False else lgb.LGBMClassifier(**params, n_estimators=5000)
+     m.fit(Xtr, ytr, eval_set=[(Xval, yval)], eval_metric='auc',
+-          callbacks=[lgb.early_stopping(100, verbose=False), lgb.log_evaluation(0)])
++          callbacks=[lgb.early_stopping(150, verbose=False), lgb.log_evaluation(0)])
+     oof[val_idx] = m.predict_proba(Xval)[:, 1]
+     preds += m.predict_proba(Xt)[:, 1] / 5
+     scores.append(roc_auc_score(yval, oof[val_idx]))
+-    print(f'fold {fold} auc: {scores[-1]:.5f}')
++    print(f'fold {fold} auc: {scores[-1]:.5f} best_iter={m.best_iteration_}')
+ 
+ print(f'CV mean auc: {np.mean(scores):.5f} +/- {np.std(scores):.5f}')
+ print(f'OOF auc: {roc_auc_score(y, oof):.5f}')
+ 
+-# retrain on full data
+-m = lgb.LGBMClassifier(**params, n_estimators=2000)
+-m.fit(X, y, callbacks=[lgb.log_evaluation(0)])
++# retrain on full data with internal validation for early stopping
++from sklearn.model_selection import train_test_split
++Xtr, Xval, ytr, yval = train_test_split(X, y, test_size=0.05, stratify=y, random_state=42)
++m = lgb.LGBMClassifier(**params, n_estimators=5000)
++m.fit(Xtr, ytr, eval_set=[(Xval, yval)], eval_metric='auc',
++      callbacks=[lgb.early_stopping(150, verbose=False), lgb.log_evaluation(0)])
++print(f'full-data best_iter={m.best_iteration_}, val auc={roc_auc_score(yval, m.predict_proba(Xval)[:,1]):.5f}')
+ full_preds = m.predict_proba(Xt)[:, 1]
+ 
+ sub['satisfaction'] = full_preds
+ sub.to_csv(OUT, index=False)
+
+[0m
+[0m← [0mEdit train.py
+Index: /work/train.py
+===================================================================
+--- /work/train.py
++++ /work/train.py
+@@ -71,9 +71,9 @@
+ 
+ for fold, (tr_idx, val_idx) in enumerate(folds.split(X, y)):
+     Xtr, Xval = X.iloc[tr_idx], X.iloc[val_idx]
+     ytr, yval = y.iloc[tr_idx], y.iloc[val_idx]
+-    m = lgb.LGBMClassifier(**params, n_estimometers if False else None) if False else lgb.LGBMClassifier(**params, n_estimators=5000)
++    m = lgb.LGBMClassifier(**params, n_estimators=5000)
+     m.fit(Xtr, ytr, eval_set=[(Xval, yval)], eval_metric='auc',
+           callbacks=[lgb.early_stopping(150, verbose=False), lgb.log_evaluation(0)])
+     oof[val_idx] = m.predict_proba(Xval)[:, 1]
+     preds += m.predict_proba(Xt)[:, 1] / 5
+
+[0m
+[0m$ [0mcd /work && python train.py
+fold 0 auc: 0.95930 best_iter=764
+fold 1 auc: 0.95790 best_iter=1292
+fold 2 auc: 0.95979 best_iter=877
+fold 3 auc: 0.95915 best_iter=882
+fold 4 auc: 0.95930 best_iter=764
+CV mean auc: 0.95909 +/- 0.00063
+OOF auc: 0.95907
+full-data best_iter=730, val auc=0.95882
+saved /work/submission.csv (299844, 2) count    299844.000000
+mean          0.443711
+std           0.430165
+min           0.006846
+25%           0.036493
+50%           0.187110
+75%           0.947443
+max           0.984493
+Name: satisfaction, dtype: float64
+[0m
+[0m$ [0mcd /work && head -3 submission.csv && python -c "
+import pandas as pd
+a = pd.read_csv('/data/sample_submission.csv'); b = pd.read_csv('/work/submission.csv')
+print(list(a.columns)==list(b.columns), (a['id']==b['id']).all(), b['satisfaction'].between(0,1).all(), b.shape)
+"
+id,satisfaction
+699635,0.2525723055460404
+699636,0.8483437994258197
+True True True (299844, 2)
+[0m
+Done. `/work/submission.csv` written with matching ids/columns.
+
+- Model: LightGBM with native categoricals, delay-derived features (total delay, delay per distance, delay flag), and service rating aggregates.
+- 5-fold CV ROC AUC: **0.9591 ± 0.0006**; Optuna tuning confirmed little headroom (best trial 0.95894).
+- Final model retrained on full training data (early stopping on a 5% holdout) and test predictions saved as probabilities.
