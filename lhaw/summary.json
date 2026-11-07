@@ -1,28 +1,28 @@
 {
- "valid_variants": 17,
- "rejected": 1,
+ "valid_variants": 33,
+ "rejected": 2,
  "u_noask": {
-  "n": 17,
-  "correct": 12,
-  "accuracy": 0.706,
+  "n": 33,
+  "correct": 17,
+  "accuracy": 0.515,
   "questions_per_task": 0.0,
   "question_precision": null,
   "calls_per_task": 1.0
  },
  "u_ask": {
-  "n": 17,
-  "correct": 10,
-  "accuracy": 0.588,
-  "questions_per_task": 0.0,
-  "question_precision": null,
-  "calls_per_task": 1.12
+  "n": 33,
+  "correct": 16,
+  "accuracy": 0.485,
+  "questions_per_task": 0.12,
+  "question_precision": 0.75,
+  "calls_per_task": 1.15
  },
  "u_nv_ask": {
-  "n": 17,
-  "correct": 11,
-  "accuracy": 0.647,
-  "questions_per_task": 0.0,
-  "question_precision": null,
-  "calls_per_task": 1.35
+  "n": 33,
+  "correct": 16,
+  "accuracy": 0.485,
+  "questions_per_task": 0.06,
+  "question_precision": 0.0,
+  "calls_per_task": 1.3
  }
 }
