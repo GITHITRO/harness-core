@@ -39,13 +39,23 @@ jobs:
       - name: Build agent image
         if: steps.plan.outputs.enabled == 'true'
         uses: docker/build-push-action@v6
-        with: {context: code, file: code/stand/kaggle/Dockerfile.agent, tags: hc-agent, load: true,
-               cache-from: type=gha,scope=agent, cache-to: "type=gha,mode=max,scope=agent"}
+        with:
+          context: code
+          file: code/stand/kaggle/Dockerfile.agent
+          tags: hc-agent
+          load: true
+          cache-from: type=gha,scope=agent
+          cache-to: type=gha,mode=max,scope=agent
       - name: Build tools image
         if: steps.plan.outputs.enabled == 'true'
         uses: docker/build-push-action@v6
-        with: {context: code, file: code/stand/kaggle/Dockerfile.tools, tags: hc-tools, load: true,
-               cache-from: type=gha,scope=tools, cache-to: "type=gha,mode=max,scope=tools"}
+        with:
+          context: code
+          file: code/stand/kaggle/Dockerfile.tools
+          tags: hc-tools
+          load: true
+          cache-from: type=gha,scope=tools
+          cache-to: type=gha,mode=max,scope=tools
       - name: Kaggle credentials (host only) + data + task statement
         if: steps.plan.outputs.enabled == 'true'
         env:
@@ -56,9 +66,12 @@ jobs:
           TOK=$(printf '%s' "$KAGGLE_API_TOKEN" | sed -E 's/^[[:space:]]*KAGGLE_API_TOKEN[[:space:]]*=[[:space:]]*//' | tr -d '[:space:]"')
           printf '%s' "$TOK" | grep -Eq '^[0-9a-f]{32}$' && TOK="KGAT_$TOK"
           echo "::add-mask::$TOK"; printf '%s' "$TOK" > ~/.kaggle/access_token; chmod 600 ~/.kaggle/access_token
+          export KAGGLE_API_TOKEN="$TOK"          # the CLI prefers the env var over the file: never leave the raw value there
+          set -o pipefail
           python3 code/stand/kaggle/prepare.py "${{ steps.plan.outputs.slug }}" "$RUNNER_TEMP/data" "${{ steps.plan.outputs.minutes }}" | head -30
       - name: Run one unit
         if: steps.plan.outputs.enabled == 'true'
+        shell: bash
         env:
           KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
         run: |
@@ -66,7 +79,7 @@ jobs:
           export BUDGET="${{ steps.plan.outputs.budget }}" MODEL="${{ steps.plan.outputs.model }}"
           python3 code/stand/kaggle/lane.py --stage-dir "state/${{ steps.plan.outputs.stage }}" --data "$RUNNER_TEMP/data" \
             --slug "${{ steps.plan.outputs.slug }}" --arms "${{ steps.plan.outputs.arms }}" --repeats "${{ steps.plan.outputs.repeats }}" \
-            --minutes "${{ steps.plan.outputs.minutes }}" --calls "${{ steps.plan.outputs.calls }}" || true
+            --minutes "${{ steps.plan.outputs.minutes }}" --calls "${{ steps.plan.outputs.calls }}"
           rm -f "$KEYFILE"
           find state -name "*.jsonl" -path "*/logs/*" -exec gzip -9f {} \; ; find state -name "session.json" -exec gzip -9f {} \;
           ! grep -rEl 'KGAT_[A-Za-z0-9]{6,}' state || { echo "::error::credential pattern found in state, refusing to commit"; exit 1; }
