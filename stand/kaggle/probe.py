@@ -28,7 +28,7 @@ def main():
         note = ""
         if rc_d != 0:
             note = dl.splitlines()[-1][:160] if dl else "download failed"
-        out.append(f"| {s} | {row[:150] or lst.splitlines()[-1][:150]} | {nfiles if rc_f == 0 else files[-120:]} | "
+        out.append(f"| {s} | {(row[:150] or lst.splitlines()[-1][:150]).replace(chr(10)," ")} | {nfiles if rc_f == 0 else files[-120:]} | "
                    f"{'ok ' + size if rc_d == 0 else 'NO'} | {note} |")
     rc, env = sh("pip install -q kaggle-environments 2>&1 | tail -1; python3 -c \"from kaggle_environments import make; "
                  "e=make('kaggriculture'); print('kaggriculture env ok', e.configuration.get('episodeSteps'))\" 2>&1 | tail -3",

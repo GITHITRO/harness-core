@@ -21,7 +21,7 @@ jobs:
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
         run: |
-          pip install -q kaggle
+          pip install -q kaggle six
           echo "secrets present: username=$([ -n "$KAGGLE_USERNAME" ] && echo y || echo n) key=$([ -n "$KAGGLE_KEY" ] && echo y || echo n) token=$([ -n "$KAGGLE_API_TOKEN" ] && echo y || echo n)" | tee secrets.txt
           [ -z "$KAGGLE_API_TOKEN" ] && unset KAGGLE_API_TOKEN
           python3 -I stand/kaggle/probe.py
