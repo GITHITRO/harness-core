@@ -1,0 +1,38 @@
+name: kaggle-probe
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: [stand/kaggle/probe.py, .github/workflows/kaggle-probe.yml]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Probe
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          pip install -q kaggle
+          echo "secrets present: username=$([ -n "$KAGGLE_USERNAME" ] && echo y || echo n) key=$([ -n "$KAGGLE_KEY" ] && echo y || echo n) token=$([ -n "$KAGGLE_API_TOKEN" ] && echo y || echo n)" | tee secrets.txt
+          [ -z "$KAGGLE_API_TOKEN" ] && unset KAGGLE_API_TOKEN
+          python3 -I stand/kaggle/probe.py
+          cat secrets.txt >> probe.md
+      - name: Publish
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir pub && cp probe.md pub/ 2>/dev/null || echo "probe failed" > pub/probe.md
+          cd pub && git init -q -b kaggle-probe && git config user.name harness-stand && git config user.email harness-stand@users.noreply.github.com
+          git add -A && git commit -qm probe
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+          git -c http.extraheader="$AUTH" push -q -f "https://github.com/${GITHUB_REPOSITORY}.git" HEAD:kaggle-probe
