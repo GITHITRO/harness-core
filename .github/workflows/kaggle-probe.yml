@@ -26,6 +26,8 @@ jobs:
           if [ -n "$KAGGLE_USERNAME" ] && [ -n "$KAGGLE_KEY" ]; then FMT=username+key
           elif printf '%s' "$RAW" | grep -q '"key"'; then
             printf '%s' "$RAW" > ~/.kaggle/kaggle.json; chmod 600 ~/.kaggle/kaggle.json; FMT=kaggle.json
+          elif [ -n "$KAGGLE_USERNAME" ] && printf '%s' "$RAW" | tr -d '[:space:]' | grep -Eq '^[0-9a-f]{32}$'; then
+            export KAGGLE_KEY=$(printf '%s' "$RAW" | tr -d '[:space:]'); echo "::add-mask::$KAGGLE_KEY"; FMT=legacy-key+username
           elif [ -n "$RAW" ]; then
             TOK=$(printf '%s' "$RAW" | sed -E 's/^[[:space:]]*KAGGLE_API_TOKEN[[:space:]]*=[[:space:]]*//' | tr -d '[:space:]"')
             echo "::add-mask::$TOK"; printf '%s' "$TOK" > ~/.kaggle/access_token; chmod 600 ~/.kaggle/access_token
