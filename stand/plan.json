@@ -1,5 +1,5 @@
 {
- "_doc": "What the lanes run. Each lane runs its current stage, then every stage in 'queue' in order (a stage is done when runs-<lane>/<stage>/status.json has remaining=0); add stages to the queue so the lane never idles. Budgets are requests/hour per lane; keep their sum <= 180 (Kilo free: 200/h).",
+ "_doc": "What the lanes run. Each lane runs its current stage, then every stage in 'queue' in order (a stage is done when runs-<lane>/<stage>/status.json has remaining=0); add stages to the queue so the lane never idles. Budgets are requests/hour per lane; keep their sum <= 180 (Kilo free: 200/h). Kaggle lane: one unit (arm x repeat) per job, interleaved; dry stage first (12 min, 40 calls).",
  "model": "nvidia/nemotron-3.5-super-vl:free",
  "sb": {
   "enabled": true,
@@ -14,14 +14,14 @@
     "script": "run",
     "arms": "base,noverify",
     "n": 100,
-    "budget": 170
+    "budget": 60
    },
    {
     "stage": "rep3",
     "script": "run",
     "arms": "base,noverify",
     "n": 100,
-    "budget": 170
+    "budget": 60
    }
   ]
  },
@@ -32,5 +32,49 @@
   "n": 20,
   "arms": "base,harness",
   "budget": 100
+ },
+ "kaggle": {
+  "enabled": true,
+  "stage": "k-dry",
+  "slug": "playground-series-s6e10",
+  "arms": "base,harness",
+  "repeats": 1,
+  "minutes": 12,
+  "calls": 40,
+  "budget": 60,
+  "queue": [
+   {
+    "stage": "k-s6e10",
+    "slug": "playground-series-s6e10",
+    "repeats": 2,
+    "minutes": 60,
+    "calls": 150,
+    "budget": 120
+   },
+   {
+    "stage": "k-gdg",
+    "slug": "recruitment-task-for-ml-gdg",
+    "repeats": 2,
+    "minutes": 60,
+    "calls": 150,
+    "budget": 120
+   },
+   {
+    "stage": "k-s6e8",
+    "slug": "playground-series-s6e8",
+    "repeats": 2,
+    "minutes": 60,
+    "calls": 150,
+    "budget": 120
+   },
+   {
+    "stage": "k-s6e9",
+    "slug": "playground-series-s6e9",
+    "repeats": 2,
+    "minutes": 60,
+    "calls": 150,
+    "budget": 120
+   }
+  ]
  }
 }

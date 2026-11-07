@@ -1,0 +1,92 @@
+name: lane-kaggle
+# Fresh Kaggle competitions (started after the model's data cut-off), base vs harness in OpenCode, network sandbox.
+# One unit (arm x repeat) per job; units chain until the queue in stand/plan.json is done.
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: [stand/plan.json, .github/workflows/kaggle.yml]
+concurrency:
+  group: lane-kaggle
+  cancel-in-progress: false
+permissions:
+  contents: write
+  actions: write
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with: {path: code, persist-credentials: false}
+      - name: Read plan (active stage)
+        id: plan
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 -I code/stand/active.py kaggle | tee -a "$GITHUB_OUTPUT"
+      - name: State branch
+        if: steps.plan.outputs.enabled == 'true'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+          git -c http.extraheader="$AUTH" clone -q --depth 1 --branch runs-kaggle "https://github.com/${GITHUB_REPOSITORY}.git" state 2>/dev/null || \
+            (mkdir state && cd state && git init -q -b runs-kaggle)
+          mkdir -p "state/${{ steps.plan.outputs.stage }}"
+          (cat "state/${{ steps.plan.outputs.stage }}"/results.jsonl 2>/dev/null | wc -l) > "$RUNNER_TEMP/rows_before"
+      - uses: docker/setup-buildx-action@v3
+        if: steps.plan.outputs.enabled == 'true'
+      - name: Build agent image
+        if: steps.plan.outputs.enabled == 'true'
+        uses: docker/build-push-action@v6
+        with: {context: code, file: code/stand/kaggle/Dockerfile.agent, tags: hc-agent, load: true,
+               cache-from: type=gha,scope=agent, cache-to: "type=gha,mode=max,scope=agent"}
+      - name: Build tools image
+        if: steps.plan.outputs.enabled == 'true'
+        uses: docker/build-push-action@v6
+        with: {context: code, file: code/stand/kaggle/Dockerfile.tools, tags: hc-tools, load: true,
+               cache-from: type=gha,scope=tools, cache-to: "type=gha,mode=max,scope=tools"}
+      - name: Kaggle credentials (host only) + data + task statement
+        if: steps.plan.outputs.enabled == 'true'
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          pip install -q kaggle six
+          mkdir -p ~/.kaggle && chmod 700 ~/.kaggle
+          TOK=$(printf '%s' "$KAGGLE_API_TOKEN" | sed -E 's/^[[:space:]]*KAGGLE_API_TOKEN[[:space:]]*=[[:space:]]*//' | tr -d '[:space:]"')
+          printf '%s' "$TOK" | grep -Eq '^[0-9a-f]{32}$' && TOK="KGAT_$TOK"
+          echo "::add-mask::$TOK"; printf '%s' "$TOK" > ~/.kaggle/access_token; chmod 600 ~/.kaggle/access_token
+          python3 code/stand/kaggle/prepare.py "${{ steps.plan.outputs.slug }}" "$RUNNER_TEMP/data" "${{ steps.plan.outputs.minutes }}" | head -30
+      - name: Run one unit
+        if: steps.plan.outputs.enabled == 'true'
+        env:
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+        run: |
+          export KEYFILE="$RUNNER_TEMP/kilo"; printf '%s' "$KILO_API_KEY" > "$KEYFILE"; chmod 644 "$KEYFILE"; unset KILO_API_KEY
+          export BUDGET="${{ steps.plan.outputs.budget }}" MODEL="${{ steps.plan.outputs.model }}"
+          python3 code/stand/kaggle/lane.py --stage-dir "state/${{ steps.plan.outputs.stage }}" --data "$RUNNER_TEMP/data" \
+            --slug "${{ steps.plan.outputs.slug }}" --arms "${{ steps.plan.outputs.arms }}" --repeats "${{ steps.plan.outputs.repeats }}" \
+            --minutes "${{ steps.plan.outputs.minutes }}" --calls "${{ steps.plan.outputs.calls }}" || true
+          rm -f "$KEYFILE"
+          find state -name "*.jsonl" -path "*/logs/*" -exec gzip -9f {} \; ; find state -name "session.json" -exec gzip -9f {} \;
+          ! grep -rEl 'KGAT_[A-Za-z0-9]{6,}' state || { echo "::error::credential pattern found in state, refusing to commit"; exit 1; }
+      - name: Commit state
+        if: always() && steps.plan.outputs.enabled == 'true'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd state
+          ! grep -rEl 'KGAT_[A-Za-z0-9]{6,}' . || exit 1
+          git config user.name "harness-stand"; git config user.email "harness-stand@users.noreply.github.com"
+          git add -A && git commit -qm "kaggle: run ${GITHUB_RUN_ID}" || exit 0
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+          git -c http.extraheader="$AUTH" push -q "https://github.com/${GITHUB_REPOSITORY}.git" HEAD:runs-kaggle
+      - name: Chain next unit
+        if: always() && steps.plan.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ROWS_BEFORE=$(cat "$RUNNER_TEMP/rows_before"); ROWS_AFTER=$(cat "state/${{ steps.plan.outputs.stage }}"/results.jsonl 2>/dev/null | wc -l)
+          HAS=$(python3 -I code/stand/active.py kaggle --has-work)
+          echo "rows $ROWS_BEFORE -> $ROWS_AFTER, lane has work: $HAS"
+          if [ "$ROWS_AFTER" -gt "$ROWS_BEFORE" ] && [ "$HAS" = 1 ]; then gh workflow run kaggle.yml --ref main -R "$GITHUB_REPOSITORY" && echo dispatched; fi

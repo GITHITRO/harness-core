@@ -53,9 +53,9 @@ def main():
         return
     print("enabled=true")
     print(f"model={plan['model']}")
-    for k in ("stage", "n", "arms", "budget", "domain"):
-        if k in s:
-            print(f"{k}={s[k]}")
+    for k, v in s.items():                      # every scalar setting of the stage
+        if isinstance(v, (str, int, float, bool)) and k != "enabled":
+            print(f"{k}={v}")
     print(f"script={s.get('script', 'run')}")
 
 

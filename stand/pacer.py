@@ -30,6 +30,9 @@ BUDGET = int(os.environ.get("BUDGET", "90"))
 STATE_FILE = os.environ.get("STATE_FILE", "pacer_state.json")
 LOG_DIR = os.environ.get("LOG_DIR", "logs")
 PORT = int(os.environ.get("PORT", "8787"))
+HOST = os.environ.get("HOST", "127.0.0.1")
+# hard per-run cap on upstream calls (equal budget for every arm); 0 = unlimited
+MAX_CALLS = int(os.environ.get("MAX_CALLS", "0"))
 LANE = os.environ.get("LANE", "kilo")
 MAX_RETRY = int(os.environ.get("MAX_RETRY", "6"))
 # measured on 529 calls: median 2.3 s, p99 126 s, max 190 s -> 300 s bounds a hung request with margin
@@ -87,6 +90,9 @@ def forward(bench, arm, subpath, body_bytes):
     except ValueError:
         req_json = {"_raw": body_bytes.decode("utf-8", "replace")}
     url = UPSTREAM + subpath
+    if MAX_CALLS and _stats["ok"] >= MAX_CALLS:
+        _log(bench, arm, {"ts": time.time(), "lane": LANE, "bench": bench, "arm": arm, "status": 429, "budget_exhausted": True})
+        return 429, json.dumps({"error": {"message": f"call budget of this run exhausted ({MAX_CALLS} calls). Stop and make sure /work/submission.csv is written.", "type": "budget_exhausted"}}).encode()
     with _lock:
         for attempt in range(MAX_RETRY):
             _take_slot()
@@ -163,7 +169,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    srv = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"pacer lane={LANE} budget={BUDGET}/h window_loaded={len(_window)} port={PORT}", flush=True)
     try:
         srv.serve_forever()
