@@ -15,6 +15,13 @@
     "arms": "base,noverify",
     "n": 100,
     "budget": 170
+   },
+   {
+    "stage": "rep3",
+    "script": "run",
+    "arms": "base,noverify",
+    "n": 100,
+    "budget": 170
    }
   ]
  },
