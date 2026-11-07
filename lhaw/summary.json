@@ -1,0 +1,28 @@
+{
+ "valid_variants": 17,
+ "rejected": 1,
+ "u_noask": {
+  "n": 17,
+  "correct": 12,
+  "accuracy": 0.706,
+  "questions_per_task": 0.0,
+  "question_precision": null,
+  "calls_per_task": 1.0
+ },
+ "u_ask": {
+  "n": 17,
+  "correct": 10,
+  "accuracy": 0.588,
+  "questions_per_task": 0.0,
+  "question_precision": null,
+  "calls_per_task": 1.12
+ },
+ "u_nv_ask": {
+  "n": 17,
+  "correct": 11,
+  "accuracy": 0.647,
+  "questions_per_task": 0.0,
+  "question_precision": null,
+  "calls_per_task": 1.35
+ }
+}
