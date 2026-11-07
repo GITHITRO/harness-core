@@ -1,0 +1,1 @@
+{"slug": "playground-series-s6e10", "arm": "base", "rep": 1, "wall_s": 16, "runner": "rc=0 submission=no\n", "pacer": {"lane": "kaggle", "budget": 60, "attempts": 3, "ok": 3, "http_429": 0, "http_5xx": 0, "errors": 0, "prompt_tokens": 0, "completion_tokens": 0, "started": 1794061928.1881804, "in_window": 3}, "error": "no submission.csv"}
