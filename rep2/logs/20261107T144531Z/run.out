@@ -1,0 +1,30 @@
+   38074 base     correct=False calls=1 1063.6s 
+   38074 noverify correct=False calls=1 52.2s 
+   55977 base     correct=False calls=1 35.1s 
+   55977 noverify correct=False calls=1 64.9s 
+Cell values in the specified range are identical.
+   43657 base     correct=True calls=1 162.9s 
+Cell values in the specified range are identical.
+   43657 noverify correct=True calls=2 342.3s 
+Cell values in the specified range are identical.
+   263-1 base     correct=True calls=1 45.9s 
+Cell values in the specified range are identical.
+   263-1 noverify correct=True calls=1 140.9s 
+Cell values in the specified range are identical.
+   50682 base     correct=True calls=1 140.8s 
+   50682 noverify correct=False calls=3 362.7s 
+   33722 base     correct=False calls=1 155.6s 
+Cell values in the specified range are identical.
+   33722 noverify correct=True calls=3 192.6s 
+Cell values in the specified range are identical.
+  414-20 base     correct=True calls=1 9.0s 
+Cell values in the specified range are identical.
+  414-20 noverify correct=True calls=1 15.0s 
+Cell values in the specified range are identical.
+   52807 base     correct=True calls=1 48.7s 
+Cell values in the specified range are identical.
+   52807 noverify correct=True calls=1 157.2s 
+Cell values in the specified range are identical.
+   42181 base     correct=True calls=1 87.0s 
+deadline reached, stopping
+{"base": {"n": 40, "correct": 23, "accuracy": 0.575, "calls_per_task": 1.0, "tokens_in": 26841, "tokens_out": 202046}, "noverify": {"n": 39, "correct": 24, "accuracy": 0.615, "calls_per_task": 1.44, "tokens_in": 67641, "tokens_out": 331437}, "harness_version": "sb-h2", "paired": {"n": 0, "harness_only": 0, "base_only": 0}}
