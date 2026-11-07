@@ -20,14 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: {path: code, persist-credentials: false}
-      - name: Read plan
+      - name: Read plan (active stage = first unfinished stage of the queue)
         id: plan
-        run: |
-          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
-          import json; p = json.load(open("code/stand/plan.json")); s = p["tau2"]
-          print(f"enabled={str(s['enabled']).lower()}"); print(f"stage={s['stage']}"); print(f"n={s['n']}")
-          print(f"arms={s['arms']}"); print(f"budget={s['budget']}"); print(f"model={p['model']}"); print(f"domain={s['domain']}")
-          EOF
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 -I code/stand/active.py tau2 | tee -a "$GITHUB_OUTPUT"
       - name: State branch
         if: steps.plan.outputs.enabled == 'true'
         env:
@@ -102,7 +99,9 @@ jobs:
           AFTER=$(python3 -c "import json;print(json.load(open('state/${{ steps.plan.outputs.stage }}/status.json'))['remaining'])" 2>/dev/null || echo unknown)
           ROWS_BEFORE=$(cat "$RUNNER_TEMP/rows_before"); ROWS_AFTER=$(cat "state/${{ steps.plan.outputs.stage }}"/results*.jsonl 2>/dev/null | wc -l)
           echo "remaining before=$BEFORE after=$AFTER rows before=$ROWS_BEFORE after=$ROWS_AFTER"
-          if [ "$ROWS_AFTER" -gt "$ROWS_BEFORE" ] && { [ "$AFTER" = unknown ] || [ "$AFTER" -gt 0 ]; }; then
+          HAS=$(GH_TOKEN="$GH_TOKEN" python3 -I code/stand/active.py tau2 --has-work)
+          echo "lane has work: $HAS"
+          if [ "$ROWS_AFTER" -gt "$ROWS_BEFORE" ] && [ "$HAS" = 1 ]; then
             gh workflow run tau2.yml --ref main -R "$GITHUB_REPOSITORY" && echo "next run dispatched"
           else
             echo "no chaining"
@@ -113,7 +112,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p status && cd status && git init -q -b status
-          python3 -I ../code/stand/check.py --out STATUS.md --dispatch | head -8
+          LANE=tau2 python3 -I ../code/stand/check.py --out STATUS.md --dispatch | head -8
           git config user.name "harness-stand"; git config user.email "harness-stand@users.noreply.github.com"
           git add STATUS.md && git commit -qm "status ${GITHUB_RUN_ID}"
           AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"

@@ -13,6 +13,11 @@ import math
 import os
 import urllib.request
 
+sys_path = os.path.dirname(os.path.abspath(__file__))
+import sys
+sys.path.insert(0, sys_path)
+import active as ACTIVE  # noqa: E402
+
 REPO = os.environ.get("GITHUB_REPOSITORY", "GITHITRO/harness-core")
 API = f"https://api.github.com/repos/{REPO}"
 TOKEN = os.environ.get("GH_TOKEN", "")
@@ -53,15 +58,17 @@ def main():
     md = ["# Stand status", "", "| lane | stage | active | remaining | last run |", "|---|---|---|---|---|"]
     detail = []
     for lane in ("sb", "tau2"):
-        cfg = plan[lane]
+        cur, _ = ACTIVE.active(plan, lane)
+        cfg = cur or ACTIVE.stages(plan, lane)[-1]
         mine = [r for r in runs if r["name"] == f"lane-{lane}"]
         own_id = os.environ.get("GITHUB_RUN_ID")
         active = [r for r in mine if r["status"] in ("in_progress", "queued", "pending", "waiting") and str(r["id"]) != own_id]
         last = next((r for r in mine if r["status"] == "completed"), None)
         st = content(f"runs-{lane}", f"{cfg['stage']}/status.json")
-        rem = json.loads(st)["remaining"] if st else "unknown"
+        rem = json.loads(st)["remaining"] if st else ("not started" if cur else 0)
         action = ""
-        if a.dispatch and cfg["enabled"] and not active and rem not in (0, "unknown") and TOKEN:
+        # restart only OTHER lanes (a lane re-dispatching itself after a crash would loop)
+        if a.dispatch and cur and not active and lane != os.environ.get("LANE") and TOKEN:
             req = urllib.request.Request(f"{API}/actions/workflows/{lane}.yml/dispatches", data=b'{"ref":"main"}',
                                          method="POST", headers={"Authorization": "Bearer " + TOKEN,
                                                                  "Accept": "application/vnd.github+json"})
@@ -75,6 +82,7 @@ def main():
         res = content(f"runs-{lane}", f"{cfg['stage']}/results.jsonl")
         rows = [json.loads(l) for l in (res or "").splitlines() if l.strip()]
         rows = [r for r in rows if "error" not in r]
+        md_stage = cfg["stage"]
         if lane == "sb" and cfg.get("script") == "lhaw":
             summ = content(f"runs-{lane}", f"{cfg['stage']}/summary.json")
             detail += ["", "## SpreadsheetBench, underspecified (LHAW: output location removed, asking allowed)", "",
