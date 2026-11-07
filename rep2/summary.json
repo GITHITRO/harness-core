@@ -1,19 +1,19 @@
 {
  "base": {
-  "n": 64,
-  "correct": 33,
-  "accuracy": 0.516,
+  "n": 89,
+  "correct": 47,
+  "accuracy": 0.528,
   "calls_per_task": 1.0,
-  "tokens_in": 43492,
-  "tokens_out": 296460
+  "tokens_in": 126373,
+  "tokens_out": 438232
  },
  "noverify": {
-  "n": 63,
-  "correct": 41,
-  "accuracy": 0.651,
-  "calls_per_task": 1.35,
-  "tokens_in": 97552,
-  "tokens_out": 491627
+  "n": 89,
+  "correct": 61,
+  "accuracy": 0.685,
+  "calls_per_task": 1.31,
+  "tokens_in": 250360,
+  "tokens_out": 636025
  },
  "harness_version": "sb-h2",
  "paired": {
