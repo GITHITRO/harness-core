@@ -1,0 +1,100 @@
+Cell values in the specified range are identical.
+   45300 base     correct=True calls=1 14.4s 
+   45300 noverify correct=False calls=1 10.9s 
+Cell values in the specified range are identical.
+    6698 base     correct=True calls=1 34.1s 
+Cell values in the specified range are identical.
+    6698 noverify correct=True calls=1 35.1s 
+   130-9 base     correct=False calls=1 48.0s 
+   130-9 noverify correct=False calls=3 114.9s 
+   54638 base     correct=False calls=1 80.3s 
+Cell values in the specified range are identical.
+   54638 noverify correct=True calls=1 29.0s 
+Cell values in the specified range are identical.
+   41265 base     correct=True calls=1 22.5s 
+Cell values in the specified range are identical.
+   41265 noverify correct=True calls=1 18.7s 
+  399-14 base     correct=False calls=1 7.8s 
+  399-14 noverify correct=False calls=1 73.4s 
+Cell values in the specified range are identical.
+   54274 base     correct=True calls=1 18.6s 
+Cell values in the specified range are identical.
+   54274 noverify correct=True calls=1 10.2s 
+    9391 base     correct=False calls=1 108.1s 
+    9391 noverify correct=False calls=3 437.9s 
+Cell values in the specified range are identical.
+  560-12 base     correct=True calls=1 27.3s 
+  560-12 noverify correct=False calls=1 20.8s 
+Cell values in the specified range are identical.
+   35739 base     correct=True calls=1 19.2s 
+Cell values in the specified range are identical.
+   35739 noverify correct=True calls=1 13.8s 
+Cell values in the specified range are identical.
+   47933 base     correct=True calls=1 4.9s 
+Cell values in the specified range are identical.
+   47933 noverify correct=True calls=1 10.0s 
+   493-5 base     correct=False calls=1 35.5s 
+   493-5 noverify correct=False calls=1 25.3s 
+Cell values in the specified range are identical.
+   41601 base     correct=True calls=1 37.0s 
+Cell values in the specified range are identical.
+   41601 noverify correct=True calls=1 13.6s 
+Cell values in the specified range are identical.
+   43589 base     correct=True calls=1 8.3s 
+Cell values in the specified range are identical.
+   43589 noverify correct=True calls=1 13.5s 
+Cell values in the specified range are identical.
+  440-24 base     correct=True calls=1 19.9s 
+Cell values in the specified range are identical.
+  440-24 noverify correct=True calls=1 12.2s 
+   58701 base     correct=False calls=1 9.8s 
+   58701 noverify correct=False calls=3 82.6s 
+   37462 base     correct=False calls=1 23.6s 
+   37462 noverify correct=False calls=2 63.0s 
+Cell values in the specified range are identical.
+   52541 base     correct=True calls=1 10.1s 
+Cell values in the specified range are identical.
+   52541 noverify correct=True calls=1 11.9s 
+Cell values in the specified range are identical.
+  269-44 base     correct=True calls=1 19.0s 
+Cell values in the specified range are identical.
+  269-44 noverify correct=True calls=1 59.7s 
+   57262 base     correct=False calls=1 14.0s 
+   57262 noverify correct=False calls=1 102.8s 
+   44296 base     correct=False calls=1 132.4s 
+   44296 noverify correct=False calls=1 81.1s 
+Cell values in the specified range are identical.
+   160-6 base     correct=True calls=1 50.2s 
+Cell values in the specified range are identical.
+   160-6 noverify correct=True calls=1 57.6s 
+Cell values in the specified range are identical.
+   51586 base     correct=True calls=1 32.7s 
+Cell values in the specified range are identical.
+   51586 noverify correct=True calls=1 34.0s 
+    1818 base     correct=False calls=1 67.2s 
+    1818 noverify correct=False calls=3 167.3s 
+Cell values in the specified range are identical.
+  472-15 base     correct=True calls=1 8.3s 
+Cell values in the specified range are identical.
+  472-15 noverify correct=True calls=1 10.7s 
+   56920 base     correct=False calls=1 9.2s 
+Cell values in the specified range are identical.
+   56920 noverify correct=True calls=2 46.4s 
+   53647 base     correct=False calls=1 31.4s 
+Cell values in the specified range are identical.
+   53647 noverify correct=True calls=1 43.4s 
+  477-45 base     correct=False calls=1 67.9s 
+Cell values in the specified range are identical.
+  477-45 noverify correct=True calls=1 77.6s 
+Cell values in the specified range are identical.
+   40892 base     correct=True calls=1 31.9s 
+Cell values in the specified range are identical.
+   40892 noverify correct=True calls=3 172.7s 
+   58147 base     correct=False calls=1 79.7s 
+   58147 noverify correct=False calls=1 62.4s 
+Cell values in the specified range are identical.
+  382-10 base     correct=True calls=1 9.5s 
+Cell values in the specified range are identical.
+  382-10 noverify correct=True calls=1 13.4s 
+deadline reached, stopping
+{"base": {"n": 31, "correct": 17, "accuracy": 0.548, "calls_per_task": 1.0, "tokens_in": 20442, "tokens_out": 132995}, "noverify": {"n": 31, "correct": 19, "accuracy": 0.613, "calls_per_task": 1.39, "tokens_in": 49198, "tokens_out": 212105}, "harness_version": "sb-h2", "paired": {"n": 0, "harness_only": 0, "base_only": 0}}

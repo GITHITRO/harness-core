@@ -1,0 +1,24 @@
+{
+ "base": {
+  "n": 31,
+  "correct": 17,
+  "accuracy": 0.548,
+  "calls_per_task": 1.0,
+  "tokens_in": 20442,
+  "tokens_out": 132995
+ },
+ "noverify": {
+  "n": 31,
+  "correct": 19,
+  "accuracy": 0.613,
+  "calls_per_task": 1.39,
+  "tokens_in": 49198,
+  "tokens_out": 212105
+ },
+ "harness_version": "sb-h2",
+ "paired": {
+  "n": 0,
+  "harness_only": 0,
+  "base_only": 0
+ }
+}
