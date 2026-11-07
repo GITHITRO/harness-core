@@ -1,0 +1,1 @@
+{"lane": "kilo-sb", "budget": 60, "attempts": 61, "ok": 61, "http_429": 0, "http_5xx": 0, "errors": 0, "prompt_tokens": 60601, "completion_tokens": 293408, "started": 1794074171.0367744, "in_window": 59}
