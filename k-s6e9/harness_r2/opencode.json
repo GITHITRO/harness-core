@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false, "share": "disabled",
+  "provider": {"kilo": {"npm": "@ai-sdk/openai-compatible", "name": "Kilo via pacer",
+    "options": {"baseURL": "http://pacer:8787/b/kaggle-playground-series-s6e9/a/harness/v1", "apiKey": "via-pacer"},
+    "models": {"nvidia/nemotron-3.5-super-vl:free": {"name": "nemotron", "tool_call": true}}}},
+  "model": "kilo/nvidia/nemotron-3.5-super-vl:free", "small_model": "kilo/nvidia/nemotron-3.5-super-vl:free",
+  "mcp": {"arxiv": {"type": "remote", "url": "http://arxiv:8000/mcp", "enabled": true}},
+  "permission": {"webfetch": "deny", "websearch": "deny", "external_directory": "allow"}
+}
